@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Secure Access</title>
+    <!-- Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FONT: Using Comic Relief (Google Font) for a playful, handwritten vibe -->
+    <link href="https://fonts.googleapis.com/css2?family=Comic+Relief&display=swap" rel="stylesheet">
+    <!-- FONT: Keeping Kalam as a fallback for stability -->
+    <link href="https://fonts.googleapis.com/css2?family=Kalam:wght400;700&display=swap" rel="stylesheet">
+
+    <style>
+        /* Custom Styles for the Password Page */
+        body {
+            /* Consistent font family */
+            font-family: 'Comic Relief', 'Kalam', 'Comic Sans MS', 'Comic Sans', cursive;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            /* Consistent Pale Blue Background */
+            background-color: #ECFEFF; 
+            color: #374151; /* Dark Gray Text */
+            position: relative; 
+        }
+
+        /* Floating Background Styles (Copied for consistency) */
+        #full-screen-floating {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 1;
+            pointer-events: none;
+            overflow: hidden;
+        }
+
+        .floating-image {
+            position: absolute;
+            bottom: -150px;
+            object-fit: contain;
+        }
+
+        @keyframes rise {
+            0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(-120vh) rotate(720deg); opacity: 0; }
+        }
+
+        /* Login Card Styling: Transparent with Border and Blur */
+        .login-card {
+            background-color: transparent; /* Clear background */
+            border: 6px solid #111827; /* Dark border */
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2); 
+            transition: transform 0.1s;
+            z-index: 10;
+            position: relative;
+            backdrop-filter: blur(5px); /* Frosted glass effect to improve readability */
+        }
+        
+        .password-input {
+            font-family: 'Comic Relief', 'Kalam', 'Comic Sans MS', 'Comic Sans', cursive;
+            border: 2px solid #D1D5DB;
+            transition: border-color 0.15s, box-shadow 0.15s;
+        }
+        .password-input:focus {
+            outline: none;
+            border-color: #111827;
+            box-shadow: 0 0 0 2px rgba(17, 24, 39, 0.1); 
+        }
+
+        .submit-button {
+            background-color: #111827; 
+            transition: background-color 0.2s;
+        }
+        .submit-button:hover {
+            background-color: #374151; /* Dark Gray Hover */
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+        }
+    </style>
+</head>
+<body class="p-4">
+
+    <!-- FLOATING IMAGES CONTAINER -->
+    <div id="full-screen-floating">
+        <!-- Images will be injected here by JavaScript -->
+    </div>
+
+    <!-- LOGIN CARD -->
+    <div class="login-card p-8 sm:p-12 rounded-xl max-w-md w-full mx-auto my-8 text-center">
+        <!-- REMOVED: <img src="cacy.png" alt="Cat Icon" class="w-20 h-20 mx-auto mb-4"> -->
+        <h1 class="text-4xl font-extrabold text-[#111827] mb-2">Secret Entrance</h1>
+        <p class="text-lg text-gray-700 mb-6">Enter the cacy to proceed to the game zone.</p>
+
+        <form id="login-form">
+            <!-- ADDED bg-white to ensure the input field has a solid, visible background -->
+            <input 
+                type="password" 
+                id="password-input" 
+                placeholder="Password"
+                class="password-input w-full p-3 rounded-lg text-lg text-gray-700 mb-4 bg-white"
+                required
+                autofocus
+            >
+            
+            <button 
+                type="submit" 
+                class="submit-button w-full text-white font-semibold px-6 py-3 rounded-lg hover:bg-[#374151] hover:shadow-xl transition duration-200"
+            >
+                Submit Cacy
+            </button>
+        </form>
+
+        <p id="status-message" class="mt-4 text-red-600 font-bold min-h-6"></p>
+
+        <!-- REMOVED: The link to the main page (index.html) is deleted here. -->
+    </div>
+
+    <script type="module">
+        document.addEventListener('DOMContentLoaded', () => {
+            const form = document.getElementById('login-form');
+            const passwordInput = document.getElementById('password-input');
+            const statusMessage = document.getElementById('status-message');
+            
+            // The secret password (K00LC4CY) - UPDATED!
+            const CORRECT_PASSWORD = "K00LC4CY"; 
+
+            // Handle form submission
+            form.addEventListener('submit', (event) => {
+                event.preventDefault(); // Prevent default form submission
+                
+                const enteredPassword = passwordInput.value.trim();
+
+                if (enteredPassword === CORRECT_PASSWORD) {
+                    statusMessage.textContent = 'Access Granted!';
+                    statusMessage.classList.remove('text-red-600');
+                    statusMessage.classList.add('text-green-600');
+                    
+                    // Redirect to the gamesite after a short delay
+                    setTimeout(() => {
+                        window.location.href = 'gamesite.html'; 
+                    }, 500);
+                } else {
+                    statusMessage.textContent = 'Access Denied: Try the Cacy again!';
+                    statusMessage.classList.remove('text-green-600');
+                    statusMessage.classList.add('text-red-600');
+                    passwordInput.value = ''; // Clear input on failure
+                    passwordInput.focus();
+                }
+            });
+
+            // --------------------------------------------------------------------------------------------------
+            // FLOATING BACKGROUND LOGIC (Copied from gamesite.html)
+            // --------------------------------------------------------------------------------------------------
+            const IMAGE_FILES = [
+                "cacy.png",
+                "cacy2.png",
+                "cacy3.png",
+                "cacy4.png",
+                "cacy5.png",
+                "cacy6.png",
+            ];
+
+            const imageContainer = document.getElementById('full-screen-floating');
+            
+            // Generate a random number between min and max (inclusive)
+            const random = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
+
+            // Function to create a single floating image
+            function createFloatingImage() {
+                if (IMAGE_FILES.length === 0) return; 
+
+                const img = document.createElement('img');
+                const randomImageIndex = random(0, IMAGE_FILES.length - 1);
+                
+                const randomSize = random(25, 120); 
+
+                img.src = IMAGE_FILES[randomImageIndex];
+                img.alt = "Floating Cat Asset"; 
+                img.className = 'floating-image';
+                
+                // Error handler
+                img.onerror = () => {
+                    console.error(`Image failed to load: ${img.src}. Check file name and path.`);
+                    img.remove(); 
+                };
+                
+                // Apply random styles
+                img.style.width = `${randomSize}px`;
+                img.style.height = `${randomSize}px`;
+                
+                // Spawn across the full 100% width of the viewport
+                img.style.left = `${random(0, 100)}vw`; 
+                img.style.opacity = random(3, 10) / 10; 
+                
+                // Apply random animation properties
+                img.style.animationName = 'rise';
+                img.style.animationDuration = `${random(25, 50)}s`; 
+                img.style.animationDelay = `${random(0, 20)}s`; 
+                img.style.animationIterationCount = 'infinite';
+                img.style.animationTimingFunction = 'linear';
+
+                imageContainer.appendChild(img);
+                
+                // Clean up the element when the animation is mostly done
+                img.addEventListener('animationiteration', () => {
+                    img.style.animationPlayState = 'paused';
+                    img.remove();
+                });
+            }
+
+            // Start generating images constantly (5 times per second)
+            setInterval(createFloatingImage, 200); 
+            // --------------------------------------------------------------------------------------------------
+        });
+    </script>
+</body>
+</html>
+
