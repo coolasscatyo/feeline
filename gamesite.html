@@ -1,239 +1,125 @@
 <!DOCTYPE html>
-
 <html lang="en">
-
 <head>
-
     <meta charset="UTF-8">
-
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
     <title>Feeline</title>
-
     <!-- Load Tailwind CSS -->
-
     <script src="https://cdn.tailwindcss.com"></script>
-
     <!-- FONT: Using Comic Relief (Google Font) for a playful, handwritten vibe -->
-
     <link href="https://fonts.googleapis.com/css2?family=Comic+Relief&display=swap" rel="stylesheet">
-
     <!-- FONT: Keeping Kalam as a fallback for stability -->
-
     <link href="https://fonts.googleapis.com/css2?family=Kalam:wght400;700&display=swap" rel="stylesheet">
 
-    <!-- REMOVED TONE.JS: Swapping music synthesis for a simpler HTML Audio element with MP3 URLs -->
-
-
     <style>
-
         /* Custom Styles for the Gamesite */
-
         body {
-
             /* CHANGED to Comic Relief, followed by Kalam and Comic Sans */
-
             font-family: 'Comic Relief', 'Kalam', 'Comic Sans MS', 'Comic Sans', cursive;
-
             margin: 0;
-
             padding: 0;
-
             min-height: 100vh;
-
             display: flex;
-
             flex-direction: column;
-
             justify-content: center;
-
             align-items: center;
-
             /* UPDATED COLOR: Very Pale Blue Background to show transparency better */
-
             background-color: #ECFEFF;
-
             /* NEW COLOR: Dark Gray Text */
-
             color: #374151;
-
             position: relative; /* Needed for z-index context */
-
         }
-
         
-
         /* Floating Background Styles */
-
         #full-screen-floating {
-
             position: fixed; /* Use fixed so it covers the whole viewport */
-
             top: 0;
-
             left: 0;
-
             width: 100vw;
-
             height: 100vh;
-
             z-index: 1; /* Below the game card (which is z-index 10) */
-
             pointer-events: none;
-
             overflow: hidden; /* Contains the motion */
-
         }
-
         
-
         .floating-image {
-
             position: absolute;
-
             bottom: -150px; /* Start far below the screen */
-
             object-fit: contain;
             
             /* Add rotation to the image for better effect */
             animation: rise 15s linear infinite;
-
         }
-
 
         /* Keyframe to rise vertically up the container */
-
         @keyframes rise {
-
             0% { transform: translateY(0) rotate(0deg); opacity: 1; }
-
             100% { transform: translateY(-120vh) rotate(720deg); opacity: 0; }
-
         }
-
 
         .game-card {
-
             /* UPDATED: Clear background for a framed look */
-
             background-color: transparent;
-
             /* NEW COLOR: Black Border */
-
             border: 6px solid #111827;
-
             /* Adjusted shadow for clear card */
-
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-
             transition: transform 0.1s;
-
             z-index: 10; /* Ensure the game card is on top of the floating layer */
-
             position: relative;
-
             /* Added a subtle blur effect to help readability over background images */
-
             backdrop-filter: blur(5px);
-
         }
-
 
         /* Custom styling for the game cards/buttons */
-
         .game-link-card {
-
             /* UPDATED: Clear background */
-
             background-color: transparent;
-
             /* NEW COLOR: Light Gray Border */
-
             border: 2px solid #D1D5DB;
-
             transition: transform 0.2s, box-shadow 0.2s;
-
             text-align: center;
-
             /* Added a subtle blur effect to help readability over background images */
-
             backdrop-filter: blur(2px);
-
         }
-
         .game-link-card:hover {
-
             transform: translateY(-4px);
-
             /* NEW COLOR: Black shadow on hover (slightly stronger) */
-
             box-shadow: 0 8px 15px rgba(0, 0, 0, 0.3);
-
         }
-
         
         /* UPDATED: Styling for image icons */
-
         .game-icon {
-
             width: 80px; /* Set a fixed size for uniformity */
-
             height: 80px;
-
             object-fit: contain; /* Ensure the full image fits without cropping */
-
             margin: 0 auto 0.75rem auto; /* Center the image and add bottom margin */
-
         }
 
-
-        /* Custom style for the back button */
-
+        /* Custom style for the back button (not used in this view but kept) */
         .back-button {
-
             /* NEW COLOR: Black Button */
-
             background-color: #111827;
-
             transition: background-color 0.2s;
-
         }
-
         /* Adjusted hover for better visibility */
-
         .back-button:hover {
-
             /* NEW COLOR: Dark Gray Hover */
-
             background-color: #374151;
-
             color: #FFFFFF;
-
         }
-
         
         /* Styling for the Search Bar input */
-
         .search-input {
-
             /* CHANGED to Comic Relief, Kalam and Comic Sans */
-
             font-family: 'Comic Relief', 'Kalam', 'Comic Sans MS', 'Comic Sans', cursive;
-
             border: 2px solid #D1D5DB;
-
             transition: border-color 0.15s, box-shadow 0.15s;
-
         }
-
         .search-input:focus {
-
             outline: none;
-
             border-color: #111827;
-
             box-shadow: 0 0 0 2px rgba(17, 24, 39, 0.1); /* Subtle black ring */
-
         }
         
         /* Custom styling for the Music Player */
@@ -276,16 +162,24 @@
 <body class="p-4">
 
     <!-- HIDDEN AUDIO ELEMENT for MP3 Playback (Controls are handled via JS) -->
-    <!-- The `autoplay` attribute is removed as modern browsers often block it. Playback must be initiated by a user click. -->
+    <!-- Note: You must provide your own MP3 files in a 'music/' directory for this to work. -->
     <audio id="audio-player" preload="auto" loop></audio>
 
 
     <!-- MUSIC PLAYER WIDGET -->
     <div id="music-player" class="music-player p-3 rounded-xl w-64 text-sm sm:w-auto">
         <p class="font-bold text-center mb-1 text-[#111827]">Feeline Radio</p>
-        <div class="text-center mb-2 h-5 overflow-hidden">
-            <span id="current-song-title" class="text-gray-700">Ready to Play!</span>
+        
+        <!-- Song Title -->
+        <div class="text-center mb-1 h-5 overflow-hidden">
+            <span id="current-song-title" class="text-gray-700 font-semibold">Ready to Play!</span>
         </div>
+        
+        <!-- NEW: Artist Credit -->
+        <div class="text-right mb-2">
+            <span id="current-song-artist" class="text-gray-500 italic text-xs">No Artist Data</span>
+        </div>
+
         <div class="flex justify-center space-x-3">
             <button id="prev-button" class="player-button p-2 rounded-full bg-white border border-[#111827] text-[#111827] flex items-center justify-center">
                 <!-- Previous Icon (SVG) -->
@@ -306,779 +200,707 @@
 
 
     <!-- FLOATING IMAGES CONTAINER (Covers the whole screen) -->
-
     <div id="full-screen-floating">
-
         <!-- Images will be injected here by JavaScript -->
-
     </div>
 
 
     <!-- GAME NAVIGATION MENU CARD -->
-
     <div class="game-card p-6 sm:p-10 rounded-xl max-w-6xl w-full mx-auto my-8">
-
         <h1 class="text-5xl font-extrabold text-[#111827] mb-4 text-center">Feeline</h1>
-
         <p class="text-xl text-gray-700 mb-6 text-center">Feel that? thats the smooth taste of Cacy! Ideas so good Qottlebup had to steal them!</p>
-        <p class="text-xl text-gray-700 mb-6 text-center">Update: Removed suggestions box and replaced it with Feeline Radio, if you wanna make suggestions, ask Cacy IRL.</p>
-
+        <p class="text-xl text-gray-700 mb-6 text-center">Update: WERE BACK BABY! Now on vercel! meaning its now easier to create links for this gamesite! wooo! also, music player works now! now, about suggestions.. i used all of my emails, all of my passwords, and none of them got me logged into my strawpage! so, im using a new one now. https://feeline.straw.page</p>
         <!-- SEARCH BAR -->
-
         <div class="mb-8 flex justify-center">
-
             <input 
-
                 type="text" 
-
                 id="game-search" 
-
-                placeholder="Search games (e.g., 'Maze' or 'Dash')..."
-
+                placeholder="Search games (e.g., 'Mario' or 'Papa's')..."
                 class="search-input w-full max-w-lg p-3 rounded-lg text-lg text-gray-700"
-
             >
-
         </div>
-
         
         <!-- GAME LINKS GRID -->
-
         <div id="game-list" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
-
             
-            <!-- Game 1: Yarn Maze -->
-
-            <!-- Link updated to point to the new game page -->
-
+            <!-- Game 1: Super Mario 64 -->
             <a href="clsupermario64.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="Super Mario 64">
-
                 <img src="star.gif" alt="Super Mario 64 Icon" class="game-icon">
-
                 <h3 class="text-xl font-bold mb-0 text-[#111827]">Super Mario 64</h3>
-
                 I had 63 stars on this game</a>
-
-            <!-- Game 2: Laser Pointer Dash -->
-
-            <!-- Link updated to point to the new game page -->
-
+            
+            <!-- Game 2: Baldi's Basics -->
             <a href="Baldi's Basics Plus(1).html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="Baldi's Basics">
-
-                <img src="baldi.gif" alt="Basics + Icon" class="game-icon">
-
+                <img src="baldi.gif" alt="Baldi's Basics Icon" class="game-icon">
                 <h3 class="text-xl font-bold mb-0 text-[#111827]">Baldi's Basics +</h3>
-
                 Fuck Playtime</a>
 
-
-            <!-- Game 3: Catnip Memory Match -->
-
-            <!-- Link updated to point to the new game page -->
-
-            <a href="Gobble.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="Gobble">
-
-                <img src="gobble.png" alt="Catnip Cat Icon" class="game-icon">
-
+            <!-- Game 3: Gobble -->
+            <a href="Gobble.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="Gobble Hole">
+                <img src="gobble.png" alt="Gobble Icon" class="game-icon">
                 <h3 class="text-xl font-bold mb-0 text-[#111827]">Gobble</h3>
-
                 I'm an og, i played this on fancade! it was called "Hole"</a>
 
-
-            <!-- Game 4: Create a new game space - NO opacity-70 -->
-
+            <!-- Game 4: Generic Fighting game maybe -->
             <a href="Generic%20Fighter%20Maybe(1).html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="Generic Fighting game maybe">
-
-                <img src="generic.jpeg" alt="Coming Soon Cat Icon" class="game-icon">
-
+                <img src="generic.jpeg" alt="Generic Fighter Icon" class="game-icon">
                 <h3 class="text-xl font-bold mb-0 text-[#111827]">Generic Fighting game maybe</h3>
-
                 Kill a blue guy or die</a>
 
-
-            <!-- START: 12 rows of 4 new placeholder games (Total 48 cards from 5 to 52) - NO opacity-70 -->
-
+            <!-- START: Placeholder games -->
             <a href="Hollow%20Knight(1).html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="Hollow Knight">
-
-                <img src="Hollow.png" alt="Coming Soon Cat Icon 5" class="game-icon">
-
+                <img src="Hollow.png" alt="Hollow Knight Icon" class="game-icon">
                 <h3 class="text-xl font-bold mb-0 text-[#111827]">Hollow Knight</h3>
-
                 Silksong sucks!</a>
 
             <a href="Fancy Pants Adventure 2.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="Fancy Pants">
-
                 <img src="Fancy.png" alt="Fancy Pants Icon" class="game-icon">
-
                 <h3 class="text-xl font-bold mb-0 text-[#111827]">Fancy Pants!</h3>
-
                 I know cuinn will enjoy this</a>
 
-            <a href="Granny.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="Granny">
-
+            <!-- Game 7: Granny -->
+            <a href="Granny.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="Granny horror">
                 <img src="Granny.png" alt="Granny Icon" class="game-icon">
-
                 <h3 class="text-xl font-bold mb-0 text-[#111827]">Granny</h3>
-
                 Anyone watched fgteev's song about this game?</a>
 
-            <a href="Granny 2.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="Granny 2">
-
+            <!-- Game 8: Granny 2 -->
+            <a href="Granny 2.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="Granny 2 horror">
                 <img src="Granny2.png" alt="Granny 2 Icon" class="game-icon">
-
                 <h3 class="text-xl font-bold mb-0 text-[#111827]">Granny 2</h3>
-
                 Granny's Houseeee</a>
 
             <!-- Row 2 (Cards 9-12) -->
-
-            <a href="Jetpack Joyride.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="Joyride">
-
-                <img src="JetpackJoyride.png" alt="Joyride Icon" class="game-icon">
-
+            <a href="Jetpack Joyride.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="Joyride Jetpack">
+                <img src="JetpackJoyride.png" alt="Jetpack Joyride Icon" class="game-icon">
                 <h3 class="text-xl font-bold mb-0 text-[#111827]">Jetpack Joyride</h3>
-
                 Classic</a>
 
-            <a href="Pou.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="Pou">
-
+            <!-- Game 10: Pou -->
+            <a href="Pou.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="Pou pet">
                 <img src="pou.png" alt="Pou Icon" class="game-icon">
-
                 <h3 class="text-xl font-bold mb-0 text-[#111827]">Pou</h3>
-
                 No! -Not Hungry Pou</a>
 
-            <a href="Sandtris.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="Sandtris">
-
+            <!-- Game 11: Sandtris -->
+            <a href="Sandtris.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="Sandtris Tetris">
                 <img src="sandtris.png" alt="Sandtris Icon" class="game-icon">
-
                 <h3 class="text-xl font-bold mb-0 text-[#111827]">Sandtris</h3>
-
                 Tiktok Streamers average game</a>
 
-            <a href="Ragdoll Hit.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="Ragdoll Hit">
-
+            <!-- Game 12: Ragdoll Hit -->
+            <a href="Ragdoll Hit.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="Ragdoll Hit physics">
                 <img src="Ragdoll.png" alt="Ragdoll Hit Icon" class="game-icon">
-
                 <h3 class="text-xl font-bold mb-0 text-[#111827]">Ragdoll Hit</h3>
-
                 i see a buncha kids play this</a>
 
             <!-- Row 3 (Cards 13-16) -->
-
-            <a href="Slope 2.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="Slope 2">
-
+            <a href="Slope 2.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="Slope 2 dash">
                 <img src="slope.jpeg" alt="Slope 2 Icon" class="game-icon">
-
                 <h3 class="text-xl font-bold mb-0 text-[#111827]">Slope 2</h3>
-
                 meh its alright</a>
 
-            <a href="Pizza Tower.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="Pizza Tower">
-
+            <!-- Game 14: Pizza Tower -->
+            <a href="Pizza Tower.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="Pizza Tower platformer">
                 <img src="pizza.png" alt="Pizza Tower Icon" class="game-icon">
-
                 <h3 class="text-xl font-bold mb-0 text-[#111827]">Pizza Tower</h3>
-
                 its good</a>
 
-            <a href="Run 3.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="2048">
-
+            <!-- Game 15: 2048 -->
+            <a href="Run 3.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="2048 puzzle">
                 <img src="2048.png" alt="2048 Icon" class="game-icon">
-
                 <h3 class="text-xl font-bold mb-0 text-[#111827]">2048</h3>
-
                 sad this is broken</a>
 
-            <a href="The Impossible Quiz.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="Impossible">
-
+            <!-- Game 16: The Impossible Quiz -->
+            <a href="The Impossible Quiz.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="Impossible Quiz trivia">
                 <img src="Skip!.png" alt="Impossible Quiz Icon" class="game-icon">
-
                 <h3 class="text-xl font-bold mb-0 text-[#111827]">Impossible Quiz</h3>
-
                 I quit at like question 50</a>
 
-            <!-- Row 4 (Cards 17-20) -->
-
-            <a href="Papa's Pizeria.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="Pizzeria">
-
-                <img src="Pizzeria.png" alt="Pizzeria Icon" class="game-icon">
-
+            <!-- Row 4 (Cards 17-20) - Papa's Games Start -->
+            <a href="Papa's Pizeria.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="Papa's Pizzeria cooking">
+                <img src="Pizzeria.png" alt="Papa's Pizzeria Icon" class="game-icon">
                 <h3 class="text-xl font-bold mb-0 text-[#111827]">Pizzeria</h3>
-
                 The rest of the games are just papa's games for now</a>
 
-            <a href="Papa's Bakeria.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="Bakeria">
-
-                <img src="Bakeria.png" alt="Bakeria Icon" class="game-icon">
-
+            <a href="Papa's Bakeria.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="Papa's Bakeria cooking">
+                <img src="Bakeria.png" alt="Papa's Bakeria Icon" class="game-icon">
                 <h3 class="text-xl font-bold mb-0 text-[#111827]">Bakeria</h3>
-
                 </a>
 
-            <a href="Papa's Burgeria.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="Burgeria">
-
-                <img src="Burgeria.jpeg" alt="Burgeria Icon" class="game-icon">
-
+            <a href="Papa's Burgeria.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="Papa's Burgeria cooking">
+                <img src="Burgeria.jpeg" alt="Papa's Burgeria Icon" class="game-icon">
                 <h3 class="text-xl font-bold mb-0 text-[#111827]">Burgeria</h3>
-
                 </a>
 
-            <a href="Papa's Cheeseria.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="Cheeseria">
-
-                <img src="Cheeseria.png" alt="Cheeseria Icon" class="game-icon">
-
+            <a href="Papa's Cheeseria.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="Papa's Cheeseria cooking">
+                <img src="Cheeseria.png" alt="Papa's Cheeseria Icon" class="game-icon">
                 <h3 class="text-xl font-bold mb-0 text-[#111827]">Cheeseria</h3>
-
                 </a>
 
             <!-- Row 5 (Cards 21-24) -->
-
-            <a href="Papa's Cupcakeria.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="Cupcakeria">
-
-                <img src="Cupcakeria.png" alt="Cupcakeria Icon" class="game-icon">
-
+            <a href="Papa's Cupcakeria.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="Papa's Cupcakeria cooking">
+                <img src="Cupcakeria.png" alt="Papa's Cupcakeria Icon" class="game-icon">
                 <h3 class="text-xl font-bold mb-0 text-[#111827]">Cupcakeria</h3>
-
                 </a>
 
-            <a href="Papa's Donuteria.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="Donuteria">
-
-                <img src="Donuteria.png" alt="Donuteria Icon" class="game-icon">
-
+            <a href="Papa's Donuteria.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="Papa's Donuteria cooking">
+                <img src="Donuteria.png" alt="Papa's Donuteria Icon" class="game-icon">
                 <h3 class="text-xl font-bold mb-0 text-[#111827]">Donuteria</h3>
-
                 </a>
 
-            <a href="Papa's Freezeria.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="Freezeria">
-
-                <img src="Freezeria.png" alt="Freezeria Icon" class="game-icon">
-
+            <a href="Papa's Freezeria.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="Papa's Freezeria cooking ice cream">
+                <img src="Freezeria.png" alt="Papa's Freezeria Icon" class="game-icon">
                 <h3 class="text-xl font-bold mb-0 text-[#111827]">Freezeria</h3>
-
                 </a>
 
-            <a href="Papa's Hot Doggeria.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="Cheeseria">
-
-                <img src="Hot Doggeria.png" alt="Cheeseria Icon" class="game-icon">
-
+            <a href="Papa's Hot Doggeria.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="Papa's Hot Doggeria cooking">
+                <img src="Hot Doggeria.png" alt="Papa's Hot Doggeria Icon" class="game-icon">
                 <h3 class="text-xl font-bold mb-0 text-[#111827]">Cockeria</h3>
-
                 </a>
 
             <!-- Row 6 (Cards 25-28) -->
-
-            <a href="Papa's Pancakeria.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="Pancakeria">
-
-                <img src="Pancakeria.png" alt="Pancakeria Icon" class="game-icon">
-
+            <a href="Papa's Pancakeria.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="Papa's Pancakeria cooking">
+                <img src="Pancakeria.png" alt="Papa's Pancakeria Icon" class="game-icon">
                 <h3 class="text-xl font-bold mb-0 text-[#111827]">Pancakeria</h3>
-
                 </a>
 
-            <a href="Papa's Pastaria.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="Pastaria">
-
-                <img src="Pastaria.png" alt="Cheeseria Icon" class="game-icon">
-
+            <a href="Papa's Pastaria.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="Papa's Pastaria cooking pasta">
+                <img src="Pastaria.png" alt="Papa's Pastaria Icon" class="game-icon">
                 <h3 class="text-xl font-bold mb-0 text-[#111827]">Pastaria</h3>
-
                 my god i hate adding these games, i wonder if anyone will actually play them :/</a>
 
-            <a href="Papa's Scooperia.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="Scooperia">
-
-                <img src="Scooperia.png" alt="Scooperia Icon" class="game-icon">
-
+            <a href="Papa's Scooperia.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="Papa's Scooperia cooking">
+                <img src="Scooperia.png" alt="Papa's Scooperia Icon" class="game-icon">
                 <h3 class="text-xl font-bold mb-0 text-[#111827]">Scooperia</h3>
-
                 wink wink</a>
 
-            <a href="Papa's Sushiria.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="Sushiria">
-
-                <img src="Sushiria.png" alt="Sushiria Icon" class="game-icon">
-
+            <a href="Papa's Sushiria.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="Papa's Sushiria cooking sushi">
+                <img src="Sushiria.png" alt="Papa's Sushiria Icon" class="game-icon">
                 <h3 class="text-xl font-bold mb-0 text-[#111827]">Sushiria</h3>
-
                 </a>
 
             <!-- Row 7 (Cards 29-32) -->
-
-            <a href="Papa's Taco Mia.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="Taco Mia">
-
-                <img src="Tacomia.png" alt="Taco Mia Icon" class="game-icon">
-
+            <a href="Papa's Taco Mia.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="Papa's Taco Mia cooking">
+                <img src="Tacomia.png" alt="Papa's Taco Mia Icon" class="game-icon">
                 <h3 class="text-xl font-bold mb-0 text-[#111827]">Taco Mia</h3>
-
                 </a>
 
-            <a href="Papa's Wingeria.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="Wingeria">
-
-                <img src="Wingeria.png" alt="Wingeria Icon" class="game-icon">
-
+            <a href="Papa's Wingeria.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="Papa's Wingeria cooking wings">
+                <img src="Wingeria.png" alt="Papa's Wingeria Icon" class="game-icon">
                 <h3 class="text-xl font-bold mb-0 text-[#111827]">Wingeria</h3>
-
                 FINALLY ITS OVER OH MY GOD</a>
 
-            <a href="Red Ball 4.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="Red Ball 4A">
-
+            <a href="Red Ball 4.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="Red Ball 4 platformer">
                 <img src="Red Ball.png" alt="Red Ball 4 Icon" class="game-icon">
-
                 <h3 class="text-xl font-bold mb-0 text-[#111827]">Red Ball 4A</h3>
-
                 I 100%ed this game it was cool</a>
 
-            <a href="Red Ball 4 Vol. 2.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="Red Ball 4B">
-
-                <img src="Red Ball.png" alt="Red Ball 4 Icon" class="game-icon">
-
+            <a href="Red Ball 4 Vol. 2.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="Red Ball 4 Vol 2 platformer">
+                <img src="Red Ball.png" alt="Red Ball 4 Vol. 2 Icon" class="game-icon">
                 <h3 class="text-xl font-bold mb-0 text-[#111827]">Red Ball 4B</h3>
-
                 This section was pretty easy.</a>
 
             <!-- Row 8 (Cards 33-36) -->
-
-            <a href="Red Ball 4 Vol. 3.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="Red Ball 4C">
-
-                <img src="Red Ball.png" alt="Red Ball 4 Icon" class="game-icon">
-
+            <a href="Red Ball 4 Vol. 3.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="Red Ball 4 Vol 3 platformer">
+                <img src="Red Ball.png" alt="Red Ball 4 Vol. 3 Icon" class="game-icon">
                 <h3 class="text-xl font-bold mb-0 text-[#111827]">Red Ball 4C</h3>
-
                 I HATED that one level where you had to fall down and get all the stars</a>
 
-            <a href="Super Mario 63.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="Super Mario 63">
-
-                <img src="Shine.gif" alt="Mario 63 Icon" class="game-icon">
-
+            <a href="Super Mario 63.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="Super Mario 63 platformer shine">
+                <img src="Shine.gif" alt="Super Mario 63 Icon" class="game-icon">
                 <h3 class="text-xl font-bold mb-0 text-[#111827]">Mario 63</h3>
-
                 Never played, actually, heard its good though!</a>
 
-            <a href="Toss the Turtle.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="Toss The Turtle">
-
-                <img src="turtle.png" alt="Toss Turtle Icon" class="game-icon">
-
+            <a href="Toss the Turtle.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="Toss The Turtle upgrade">
+                <img src="turtle.png" alt="Toss The Turtle Icon" class="game-icon">
                 <h3 class="text-xl font-bold mb-0 text-[#111827]">Toss The Turtle</h3>
-
                 Toss it!!!!</a>
 
-            <a href="The Oregon Trail.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="Oregon Trail">
-
+            <a href="The Oregon Trail.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="Oregon Trail simulation survival">
                 <img src="oregon.jpg" alt="Oregon Trail Icon" class="game-icon">
-
                 <h3 class="text-xl font-bold mb-0 text-[#111827]">Oregon Trail</h3>
-
                 I died because i shat myself 10/10</a>
 
             <!-- Row 9 (Cards 37-40) -->
-
-            <a href="Kindergarten.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="Kindergarten">
-
-                <img src="NUGGET.png" alt="Oregon Trail Icon" class="game-icon">
-
+            <a href="Kindergarten.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="Kindergarten horror adventure">
+                <img src="NUGGET.png" alt="Kindergarten Icon" class="game-icon">
                 <h3 class="text-xl font-bold mb-0 text-[#111827]">Kindergarten</h3>
-
                 ah kindergarten, just how i remembered it!</a>
 
-            <a href="Kindergarten 2.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="Kindergarten 2">
-
-                <img src="NUGGET3.png" alt="Oregon Trail Icon" class="game-icon">
-
+            <a href="Kindergarten 2.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="Kindergarten 2 horror adventure">
+                <img src="NUGGET3.png" alt="Kindergarten 2 Icon" class="game-icon">
                 <h3 class="text-xl font-bold mb-0 text-[#111827]">Kindergarten 2</h3>
-
                 ah kindergarten again, just how i remembered it twice!</a>
 
-            <a href="Kindergarten 3.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="Kindergarten 3">
-
-                <img src="NUGGET2.png" alt="Oregon Trail Icon" class="game-icon">
-
+            <a href="Kindergarten 3.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="Kindergarten 3 horror adventure">
+                <img src="NUGGET2.png" alt="Kindergarten 3 Icon" class="game-icon">
                 <h3 class="text-xl font-bold mb-0 text-[#111827]">Kindergarten 3</h3>
-
                 ah kindergarteners, yum!</a>
 
-            <a href="Bad Monday Simulator.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="Monday Sim">
-
-                <img src="Nermal.gif" alt="Monday Sim Icon" class="game-icon">
-
+            <a href="Bad Monday Simulator.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="Monday Sim Garfield horror">
+                <img src="Nermal.gif" alt="Bad Monday Simulator Icon" class="game-icon">
                 <h3 class="text-xl font-bold mb-0 text-[#111827]">Bad Monday Sim</h3>
-
                 i eat john, its what i do!</a>
 
             <!-- Row 10 (Cards 41-44) -->
-
-            <a href="Getting Over It with Bennett Foddy(1).html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="Getting Over It">
-
+            <a href="Getting Over It with Bennett Foddy(1).html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="Getting Over It rage physics">
                 <img src="gettingoverit.png" alt="Getting Over It Icon" class="game-icon">
-
                 <h3 class="text-xl font-bold mb-0 text-[#111827]">Getting Over it</h3>
-
                 ah getting over its, yum!</a>
 
             <a href="Flappy Bird.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="Flappy Bird">
-
                 <img src="flappybird.png" alt="Flappy Bird Icon" class="game-icon">
-
                 <h3 class="text-xl font-bold mb-0 text-[#111827]">Flappy Bird</h3>
-
                 ah repeating myself to be funny, yum!</a>
 
-            <a href="Run 3.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="Run 3">
-
+            <a href="Run 3.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="Run 3 dash space">
                 <img src="run.gif" alt="Run 3 Icon" class="game-icon">
-
                 <h3 class="text-xl font-bold mb-0 text-[#111827]">Run 3</h3>
-
                 hey guys google boobs on your chromebooks it'd be funny anyways uh runs pretty cool i guess</a>
 
-            <a href="The World's Hardest Game.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="Hardest Game">
-
-                <img src="worlds hardest.png" alt="Hardest Icon" class="game-icon">
-
+            <a href="The World's Hardest Game.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="Hardest Game skill challenge">
+                <img src="worlds hardest.png" alt="World's Hardest Game Icon" class="game-icon">
                 <h3 class="text-xl font-bold mb-0 text-[#111827]">World's Hardest Game</h3>
-
                 Yea its hard, but im harder!</a>
 
             
             <!-- NEW ROW 11 (Cards 45-48) -->
-
-            <a href="Burrito Bison.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="Burrito Bison">
-
+            <a href="Burrito Bison.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="Burrito Bison launch upgrade">
                 <img src="Burrito.png" alt="Burrito Bison Icon" class="game-icon">
-
                 <h3 class="text-xl font-bold mb-0 text-[#111827]">Burrito Bison</h3>
-
                 My brother loves this game, he sucks!</a>
 
-            <a href="BitLife.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="BitLife">
-
+            <a href="BitLife.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="BitLife life simulator">
                 <img src="BitLife.png" alt="BitLife Icon" class="game-icon">
-
                 <h3 class="text-xl font-bold mb-0 text-[#111827]">BitLife</h3>
-
                 i dont really like this game that much</a>
 
-            <a href="Monkey Mart.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="Monkey Mart">
-
+            <a href="Monkey Mart.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="Monkey Mart idle management">
                 <img src="monkey.png" alt="Monkey Mart Icon" class="game-icon">
-
                 <h3 class="text-xl font-bold mb-0 text-[#111827]">Monkey Mart</h3>
-
                 oooo oooo aaaa aaaa</a>
 
-            <a href="Geometry Dash Lite.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="GD">
-
-                <img src="Geometry.png" alt="GD Icon" class="game-icon">
-
+            <a href="Geometry Dash Lite.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="Geometry Dash GD rhythm">
+                <img src="Geometry.png" alt="Geometry Dash Icon" class="game-icon">
                 <h3 class="text-xl font-bold mb-0 text-[#111827]">Geometry Dash</h3>
-
                 look guys! its geometry dash NOT ON SCRATCH! i know, amazing right?</a>
 
             <!-- NEW ROW 12 (Cards 49-52) -->
-
-            <a href="Duck Life 5.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="Duck Life">
-
-                <img src="Duck Life.png" alt="Duck Life Icon" class="game-icon">
-
+            <a href="Duck Life 5.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="Duck Life racing training">
+                <img src="Duck Life.png" alt="Duck Life 5 Icon" class="game-icon">
                 <h3 class="text-xl font-bold mb-0 text-[#111827]">Duck Life 5</h3>
-
                 i always confused this game with "can your pet"</a>
 
-            <a href="Drive Mad.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="Drive Mad">
-
+            <a href="Drive Mad.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="Drive Mad driving physics">
                 <img src="Drive.png" alt="Drive Mad Icon" class="game-icon">
-
                 <h3 class="text-xl font-bold mb-0 text-[#111827]">Drive Mad</h3>
-
                 Another game i used to play on fancade, im pretty sure i made a bunch of custom levels on there about this game</a>
 
-            <a href="myTeardrop.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="myTeardrop">
-
-                <img src="tear.gif" alt="Oregon Trail Icon" class="game-icon">
-
+            <a href="myTeardrop.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="myTeardrop bfdi">
+                <img src="tear.gif" alt="myTeardrop Icon" class="game-icon">
                 <h3 class="text-xl font-bold mb-0 text-[#111827]">myTeardrop</h3>
-
                 bfdi is pretty cool</a>
 
-            <a href="Buckshot Roulette.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="Buckshot">
-
-                <img src="buckshot.gif" alt="Buckshot" class="game-icon">
-
+            <a href="Buckshot Roulette.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="Buckshot Roulette horror card">
+                <img src="buckshot.gif" alt="Buckshot Roulette Icon" class="game-icon">
                 <h3 class="text-xl font-bold mb-0 text-[#111827]">Buckshot Roulette</h3>
-
                 The last game before i update the gamesite, and im not sure if it even works!!!!</a>
 
-            <!-- END: 12 rows of 4 new placeholder games -->
-
-            <a href="gamesite.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="placeholder">
-
-                <img src="cacy.png" alt="placeholder" class="game-icon">
-
+            <!-- Placeholder spots remain -->
+            <a href="gamesite.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="placeholder new game">
+                <img src="cacy.png" alt="placeholder icon" class="game-icon">
                 <h3 class="text-xl font-bold mb-0 text-[#111827]">New Game</h3>
-
                 This is a placeholder for a soon to be added game!</a>
 
-            <a href="gamesite.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="placeholder">
-
-                <img src="cacy.png" alt="placeholder" class="game-icon">
-
+            <a href="gamesite.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="placeholder new game">
+                <img src="cacy.png" alt="placeholder icon" class="game-icon">
                 <h3 class="text-xl font-bold mb-0 text-[#111827]">New Game</h3>
-
                 This is a placeholder for a soon to be added game!</a>
 
-            <a href="gamesite.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="placeholder">
-
-                <img src="cacy.png" alt="placeholder" class="game-icon">
-
+            <a href="gamesite.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="placeholder new game">
+                <img src="cacy.png" alt="placeholder icon" class="game-icon">
                 <h3 class="text-xl font-bold mb-0 text-[#111827]">New Game</h3>
-
                 This is a placeholder for a soon to be added game!</a>
 
-            <a href="gamesite.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="placeholder">
-
-                <img src="cacy.png" alt="placeholder" class="game-icon">
-
+            <a href="gamesite.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="placeholder new game">
+                <img src="cacy.png" alt="placeholder icon" class="game-icon">
                 <h3 class="text-xl font-bold mb-0 text-[#111827]">New Game</h3>
-
+                This is a placeholder for a soon to be added game!</a>            <!-- Placeholder spots remain -->
+            <a href="gamesite.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="placeholder new game">
+                <img src="cacy.png" alt="placeholder icon" class="game-icon">
+                <h3 class="text-xl font-bold mb-0 text-[#111827]">New Game</h3>
                 This is a placeholder for a soon to be added game!</a>
 
-            <a href="gamesite.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="placeholder">
-
-                <img src="cacy.png" alt="placeholder" class="game-icon">
-
+            <a href="gamesite.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="placeholder new game">
+                <img src="cacy.png" alt="placeholder icon" class="game-icon">
                 <h3 class="text-xl font-bold mb-0 text-[#111827]">New Game</h3>
-
                 This is a placeholder for a soon to be added game!</a>
 
-            <a href="gamesite.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="placeholder">
-
-                <img src="cacy.png" alt="placeholder" class="game-icon">
-
+            <a href="gamesite.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="placeholder new game">
+                <img src="cacy.png" alt="placeholder icon" class="game-icon">
                 <h3 class="text-xl font-bold mb-0 text-[#111827]">New Game</h3>
-
                 This is a placeholder for a soon to be added game!</a>
 
-            <a href="gamesite.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="placeholder">
-
-                <img src="cacy.png" alt="placeholder" class="game-icon">
-
+            <a href="gamesite.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="placeholder new game">
+                <img src="cacy.png" alt="placeholder icon" class="game-icon">
                 <h3 class="text-xl font-bold mb-0 text-[#111827]">New Game</h3>
-
+                This is a placeholder for a soon to be added game!</a>            <!-- Placeholder spots remain -->
+            <a href="gamesite.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="placeholder new game">
+                <img src="cacy.png" alt="placeholder icon" class="game-icon">
+                <h3 class="text-xl font-bold mb-0 text-[#111827]">New Game</h3>
                 This is a placeholder for a soon to be added game!</a>
 
-            <a href="gamesite.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="placeholder">
-
-                <img src="cacy.png" alt="placeholder" class="game-icon">
-
+            <a href="gamesite.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="placeholder new game">
+                <img src="cacy.png" alt="placeholder icon" class="game-icon">
                 <h3 class="text-xl font-bold mb-0 text-[#111827]">New Game</h3>
-
                 This is a placeholder for a soon to be added game!</a>
 
-            <a href="gamesite.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="placeholder">
-
-                <img src="cacy.png" alt="placeholder" class="game-icon">
-
+            <a href="gamesite.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="placeholder new game">
+                <img src="cacy.png" alt="placeholder icon" class="game-icon">
                 <h3 class="text-xl font-bold mb-0 text-[#111827]">New Game</h3>
-
                 This is a placeholder for a soon to be added game!</a>
 
-            <a href="gamesite.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="placeholder">
-
-                <img src="cacy.png" alt="placeholder" class="game-icon">
-
+            <a href="gamesite.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="placeholder new game">
+                <img src="cacy.png" alt="placeholder icon" class="game-icon">
                 <h3 class="text-xl font-bold mb-0 text-[#111827]">New Game</h3>
-
+                This is a placeholder for a soon to be added game!</a>            <!-- Placeholder spots remain -->
+            <a href="gamesite.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="placeholder new game">
+                <img src="cacy.png" alt="placeholder icon" class="game-icon">
+                <h3 class="text-xl font-bold mb-0 text-[#111827]">New Game</h3>
                 This is a placeholder for a soon to be added game!</a>
 
+            <a href="gamesite.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="placeholder new game">
+                <img src="cacy.png" alt="placeholder icon" class="game-icon">
+                <h3 class="text-xl font-bold mb-0 text-[#111827]">New Game</h3>
+                This is a placeholder for a soon to be added game!</a>
+
+            <a href="gamesite.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="placeholder new game">
+                <img src="cacy.png" alt="placeholder icon" class="game-icon">
+                <h3 class="text-xl font-bold mb-0 text-[#111827]">New Game</h3>
+                This is a placeholder for a soon to be added game!</a>
+
+            <a href="gamesite.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="placeholder new game">
+                <img src="cacy.png" alt="placeholder icon" class="game-icon">
+                <h3 class="text-xl font-bold mb-0 text-[#111827]">New Game</h3>
+                This is a placeholder for a soon to be added game!</a>            <!-- Placeholder spots remain -->
+            <a href="gamesite.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="placeholder new game">
+                <img src="cacy.png" alt="placeholder icon" class="game-icon">
+                <h3 class="text-xl font-bold mb-0 text-[#111827]">New Game</h3>
+                This is a placeholder for a soon to be added game!</a>
+
+            <a href="gamesite.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="placeholder new game">
+                <img src="cacy.png" alt="placeholder icon" class="game-icon">
+                <h3 class="text-xl font-bold mb-0 text-[#111827]">New Game</h3>
+                This is a placeholder for a soon to be added game!</a>
+
+            <a href="gamesite.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="placeholder new game">
+                <img src="cacy.png" alt="placeholder icon" class="game-icon">
+                <h3 class="text-xl font-bold mb-0 text-[#111827]">New Game</h3>
+                This is a placeholder for a soon to be added game!</a>
+
+            <a href="gamesite.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="placeholder new game">
+                <img src="cacy.png" alt="placeholder icon" class="game-icon">
+                <h3 class="text-xl font-bold mb-0 text-[#111827]">New Game</h3>
+                This is a placeholder for a soon to be added game!</a>            <!-- Placeholder spots remain -->
+            <a href="gamesite.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="placeholder new game">
+                <img src="cacy.png" alt="placeholder icon" class="game-icon">
+                <h3 class="text-xl font-bold mb-0 text-[#111827]">New Game</h3>
+                This is a placeholder for a soon to be added game!</a>
+
+            <a href="gamesite.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="placeholder new game">
+                <img src="cacy.png" alt="placeholder icon" class="game-icon">
+                <h3 class="text-xl font-bold mb-0 text-[#111827]">New Game</h3>
+                This is a placeholder for a soon to be added game!</a>
+
+            <a href="gamesite.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="placeholder new game">
+                <img src="cacy.png" alt="placeholder icon" class="game-icon">
+                <h3 class="text-xl font-bold mb-0 text-[#111827]">New Game</h3>
+                This is a placeholder for a soon to be added game!</a>
+
+            <a href="gamesite.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="placeholder new game">
+                <img src="cacy.png" alt="placeholder icon" class="game-icon">
+                <h3 class="text-xl font-bold mb-0 text-[#111827]">New Game</h3>
+                This is a placeholder for a soon to be added game!</a>            <!-- Placeholder spots remain -->
+            <a href="gamesite.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="placeholder new game">
+                <img src="cacy.png" alt="placeholder icon" class="game-icon">
+                <h3 class="text-xl font-bold mb-0 text-[#111827]">New Game</h3>
+                This is a placeholder for a soon to be added game!</a>
+
+            <a href="gamesite.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="placeholder new game">
+                <img src="cacy.png" alt="placeholder icon" class="game-icon">
+                <h3 class="text-xl font-bold mb-0 text-[#111827]">New Game</h3>
+                This is a placeholder for a soon to be added game!</a>
+
+            <a href="gamesite.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="placeholder new game">
+                <img src="cacy.png" alt="placeholder icon" class="game-icon">
+                <h3 class="text-xl font-bold mb-0 text-[#111827]">New Game</h3>
+                This is a placeholder for a soon to be added game!</a>
+
+            <a href="gamesite.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="placeholder new game">
+                <img src="cacy.png" alt="placeholder icon" class="game-icon">
+                <h3 class="text-xl font-bold mb-0 text-[#111827]">New Game</h3>
+                This is a placeholder for a soon to be added game!</a>            <!-- Placeholder spots remain -->
+            <a href="gamesite.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="placeholder new game">
+                <img src="cacy.png" alt="placeholder icon" class="game-icon">
+                <h3 class="text-xl font-bold mb-0 text-[#111827]">New Game</h3>
+                This is a placeholder for a soon to be added game!</a>
+
+            <a href="gamesite.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="placeholder new game">
+                <img src="cacy.png" alt="placeholder icon" class="game-icon">
+                <h3 class="text-xl font-bold mb-0 text-[#111827]">New Game</h3>
+                This is a placeholder for a soon to be added game!</a>
+
+            <a href="gamesite.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="placeholder new game">
+                <img src="cacy.png" alt="placeholder icon" class="game-icon">
+                <h3 class="text-xl font-bold mb-0 text-[#111827]">New Game</h3>
+                This is a placeholder for a soon to be added game!</a>
+
+            <a href="gamesite.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="placeholder new game">
+                <img src="cacy.png" alt="placeholder icon" class="game-icon">
+                <h3 class="text-xl font-bold mb-0 text-[#111827]">New Game</h3>
+                This is a placeholder for a soon to be added game!</a>            <!-- Placeholder spots remain -->
+            <a href="gamesite.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="placeholder new game">
+                <img src="cacy.png" alt="placeholder icon" class="game-icon">
+                <h3 class="text-xl font-bold mb-0 text-[#111827]">New Game</h3>
+                This is a placeholder for a soon to be added game!</a>
+
+            <a href="gamesite.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="placeholder new game">
+                <img src="cacy.png" alt="placeholder icon" class="game-icon">
+                <h3 class="text-xl font-bold mb-0 text-[#111827]">New Game</h3>
+                This is a placeholder for a soon to be added game!</a>
+
+            <a href="gamesite.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="placeholder new game">
+                <img src="cacy.png" alt="placeholder icon" class="game-icon">
+                <h3 class="text-xl font-bold mb-0 text-[#111827]">New Game</h3>
+                This is a placeholder for a soon to be added game!</a>
+
+            <a href="gamesite.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="placeholder new game">
+                <img src="cacy.png" alt="placeholder icon" class="game-icon">
+                <h3 class="text-xl font-bold mb-0 text-[#111827]">New Game</h3>
+                This is a placeholder for a soon to be added game!</a>            <!-- Placeholder spots remain -->
+            <a href="gamesite.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="placeholder new game">
+                <img src="cacy.png" alt="placeholder icon" class="game-icon">
+                <h3 class="text-xl font-bold mb-0 text-[#111827]">New Game</h3>
+                This is a placeholder for a soon to be added game!</a>
+
+            <a href="gamesite.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="placeholder new game">
+                <img src="cacy.png" alt="placeholder icon" class="game-icon">
+                <h3 class="text-xl font-bold mb-0 text-[#111827]">New Game</h3>
+                This is a placeholder for a soon to be added game!</a>
+
+            <a href="gamesite.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="placeholder new game">
+                <img src="cacy.png" alt="placeholder icon" class="game-icon">
+                <h3 class="text-xl font-bold mb-0 text-[#111827]">New Game</h3>
+                This is a placeholder for a soon to be added game!</a>
+
+            <a href="gamesite.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="placeholder new game">
+                <img src="cacy.png" alt="placeholder icon" class="game-icon">
+                <h3 class="text-xl font-bold mb-0 text-[#111827]">New Game</h3>
+                This is a placeholder for a soon to be added game!</a>            <!-- Placeholder spots remain -->
+            <a href="gamesite.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="placeholder new game">
+                <img src="cacy.png" alt="placeholder icon" class="game-icon">
+                <h3 class="text-xl font-bold mb-0 text-[#111827]">New Game</h3>
+                This is a placeholder for a soon to be added game!</a>
+
+            <a href="gamesite.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="placeholder new game">
+                <img src="cacy.png" alt="placeholder icon" class="game-icon">
+                <h3 class="text-xl font-bold mb-0 text-[#111827]">New Game</h3>
+                This is a placeholder for a soon to be added game!</a>
+
+            <a href="gamesite.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="placeholder new game">
+                <img src="cacy.png" alt="placeholder icon" class="game-icon">
+                <h3 class="text-xl font-bold mb-0 text-[#111827]">New Game</h3>
+                This is a placeholder for a soon to be added game!</a>
+
+            <a href="gamesite.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="placeholder new game">
+                <img src="cacy.png" alt="placeholder icon" class="game-icon">
+                <h3 class="text-xl font-bold mb-0 text-[#111827]">New Game</h3>
+                This is a placeholder for a soon to be added game!</a>            <!-- Placeholder spots remain -->
+            <a href="gamesite.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="placeholder new game">
+                <img src="cacy.png" alt="placeholder icon" class="game-icon">
+                <h3 class="text-xl font-bold mb-0 text-[#111827]">New Game</h3>
+                This is a placeholder for a soon to be added game!</a>
+
+            <a href="gamesite.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="placeholder new game">
+                <img src="cacy.png" alt="placeholder icon" class="game-icon">
+                <h3 class="text-xl font-bold mb-0 text-[#111827]">New Game</h3>
+                This is a placeholder for a soon to be added game!</a>
+
+            <a href="gamesite.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="placeholder new game">
+                <img src="cacy.png" alt="placeholder icon" class="game-icon">
+                <h3 class="text-xl font-bold mb-0 text-[#111827]">New Game</h3>
+                This is a placeholder for a soon to be added game!</a>
+
+            <a href="gamesite.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="placeholder new game">
+                <img src="cacy.png" alt="placeholder icon" class="game-icon">
+                <h3 class="text-xl font-bold mb-0 text-[#111827]">New Game</h3>
+                This is a placeholder for a soon to be added game!</a>
+                
         </div>
-
     </div>
 
     <script>
-        // --- GAME MENU LOGIC (Existing Search and Floating Images) ---
-
-        // Array of image URLs for the floating effect
-        const floatingImages = [
-            'cacy.png', // Red Heart
-            'cacy2.png', // Cat Face
-            'cacy3.png', // Flower
-            'cacy4.png', // Star
-            'cacy5.png' // Bomb/Explosion
-            'cacy6.png' // Bomb/Explosion
-        ];
-
-        const floatingContainer = document.getElementById('full-screen-floating');
-
-        /**
-         * Creates a single floating image element with a random starting position and size.
-         * @param {string} src The image URL.
-         */
-        function createFloatingImage(src) {
-            const img = document.createElement('img');
-            img.src = src;
-            img.classList.add('floating-image');
-
-            // Randomize starting position (left, right, size)
-            const left = Math.random() * 100; // 0% to 100%
-            const size = Math.floor(Math.random() * (100 - 50 + 1)) + 50; // 50px to 100px
-            const duration = Math.floor(Math.random() * (25 - 10 + 1)) + 10; // 10s to 25s
-
-            img.style.width = `${size}px`;
-            img.style.height = `${size}px`;
-            img.style.left = `${left}vw`;
-            img.style.animationDuration = `${duration}s`;
-            img.style.animationDelay = `-${Math.random() * duration}s`; // Start at a random point in the cycle
-            img.style.opacity = '0.8';
-
-            floatingContainer.appendChild(img);
-
-            // Remove element after animation ends to prevent accumulation
-            img.addEventListener('animationiteration', () => {
-                img.remove();
-                // Create a new one to keep the effect continuous
-                createFloatingImage(floatingImages[Math.floor(Math.random() * floatingImages.length)]);
-            });
-        }
-
-        // Initialize multiple floating elements
-        for (let i = 0; i < 10; i++) {
-            setTimeout(() => {
-                createFloatingImage(floatingImages[Math.floor(Math.random() * floatingImages.length)]);
-            }, i * 2000); // Stagger initial creation
-        }
-
-
-        // Game Search/Filter Logic
-        const searchInput = document.getElementById('game-search');
-        const gameList = document.getElementById('game-list');
-        const gameLinks = Array.from(gameList.getElementsByTagName('a'));
-
-        searchInput.addEventListener('input', () => {
-            const query = searchInput.value.toLowerCase().trim();
+        // --- 1. Game Search Functionality ---
+        document.getElementById('game-search').addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase().trim();
+            const gameLinks = document.querySelectorAll('#game-list a');
 
             gameLinks.forEach(link => {
-                const title = link.getAttribute('data-title').toLowerCase();
-                const text = link.textContent.toLowerCase();
+                const title = link.querySelector('h3').textContent.toLowerCase();
+                // Get the data-title attribute for alternative search terms (e.g., 'Maze' or 'Dash')
+                const dataTitle = link.getAttribute('data-title').toLowerCase();
+                const description = link.textContent.toLowerCase();
 
-                if (title.includes(query) || text.includes(query)) {
-                    link.style.display = 'block';
+                // Check if the search term is in the title, data-title, or description
+                if (title.includes(searchTerm) || dataTitle.includes(searchTerm) || description.includes(searchTerm)) {
+                    link.style.display = 'block'; // Show the game card
                 } else {
-                    link.style.display = 'none';
+                    link.style.display = 'none'; // Hide the game card
                 }
             });
         });
 
-        // --- MUSIC PLAYER LOGIC (UPDATED FOR NATIVE AUDIO) ---
+        // --- 2. Floating Background Animation (Image Spawner) ---
+        const floatingContainer = document.getElementById('full-screen-floating');
+        const imageSources = [
+            "cacy.png", 
+            "cacy2.png",
+            "cacy3.png", 
+            "cacy4.png",
+            "cacy5.png", // Added another GIF for variety
+            "cacy6.png" // Added another icon
+        ];
 
+        function createFloatingImage() {
+            const img = document.createElement('img');
+            img.src = imageSources[Math.floor(Math.random() * imageSources.length)];
+            img.className = 'floating-image w-20 h-20 sm:w-28 sm:h-28'; // Tailwind classes for sizing
+            
+            // Random horizontal start position (0% to 100% width)
+            const startX = Math.random() * 100;
+            img.style.left = `${startX}vw`;
+            
+            // Randomize animation duration for a staggered look (10s to 25s)
+            const duration = Math.random() * 15 + 10;
+            img.style.animationDuration = `${duration}s`;
+
+            // Randomize initial rotation (720deg is already in CSS, this adds a random offset)
+            const initialRotation = Math.random() * 360;
+            img.style.transform = `translateY(0) rotate(${initialRotation}deg)`;
+
+            // Clean up the element after animation ends
+            img.addEventListener('animationend', () => {
+                img.remove();
+            });
+
+            floatingContainer.appendChild(img);
+        }
+
+        // Start spawning images every 1.5 to 3 seconds
+        setInterval(createFloatingImage, Math.random() * 1500 + 1500);
+
+
+        // --- 3. Feeline Radio (HTML Audio Player) ---
         const audioPlayer = document.getElementById('audio-player');
         const playPauseButton = document.getElementById('play-pause-button');
         const playIcon = document.getElementById('play-icon');
         const pauseIcon = document.getElementById('pause-icon');
-        const currentSongTitle = document.getElementById('current-song-title');
         const nextButton = document.getElementById('next-button');
         const prevButton = document.getElementById('prev-button');
+        const currentSongTitle = document.getElementById('current-song-title');
+        // NEW: Get the artist element
+        const currentSongArtist = document.getElementById('current-song-artist');
 
-        // Playlist using placeholder MP3 URLs
+        // Array of songs (NOTE: Now includes an 'artist' field)
         const playlist = [
-            {
-                title: "Field Of Hopes and Dreams",
-                url: "Field of Hopes and Dreams - Toby Fox.mp3"
-            },
-            {
-                title: "Placeholder Track 2: Upbeat Loop",
-                url: "https://filesamples.com/samples/audio/mp3/sample4.mp3"
-            },
-            {
-                title: "Placeholder Track 3: Energetic Pop",
-                url: "https://filesamples.com/samples/audio/mp3/sample5.mp3"
-            }
+            { url: "music/Field of Hopes and Dreams - Toby Fox.mp3", title: "Field of Hopes and Dreams", artist: "Toby Fox" },
+            { url: "Dont Preheat.mp3", title: "Dont preheat your oven cause if you do this song wont play", artist: "ClascyJitto" },
+            { url: "From Now On.mp3", title: "From Now On", artist: "Toby Fox" },
+            { url: "charlie.mp3", title: "Charlie's Here!", artist: "Club Penguin Team" },
+            { url: "Atlas.mp3", title: "Atlas", artist: "Battles" },
+            { url: "music/new_track_5.mp3", title: "Awesome New Track Five", artist: "Cacy" },
+            { url: "music/extra_loop_6.mp3", title: "Another Chill Loop", artist: "Feeline" }
         ];
 
-        let currentTrackIndex = 0;
+        let currentSongIndex = 0;
         let isPlaying = false;
 
-        /**
-         * Loads and plays a song from the playlist based on the index.
-         * @param {number} index The index of the song in the playlist.
-         */
-        function loadAndPlaySong(index) {
-            currentTrackIndex = (index + playlist.length) % playlist.length;
-            const track = playlist[currentTrackIndex];
+        function loadSong(index) {
+            currentSongIndex = (index + playlist.length) % playlist.length; // Ensure index loops
+            const song = playlist[currentSongIndex];
+            audioPlayer.src = song.url;
+            currentSongTitle.textContent = song.title;
+            // NEW: Update artist credit
+            currentSongArtist.textContent = `Artist: ${song.artist}`; 
+            // Preload metadata to ensure the file is ready to play
+            audioPlayer.load(); 
+        }
 
-            console.log(`Loading: ${track.title}`);
-            audioPlayer.src = track.url;
-            currentSongTitle.textContent = track.title;
-            
-            // Try to play the song. Playback can only be guaranteed if initiated by a direct user gesture.
+        function playSong() {
+            // Attempt to play, handling the common browser error where user interaction is needed
             audioPlayer.play().then(() => {
                 isPlaying = true;
-                updatePlayPauseIcon(true);
+                playIcon.classList.add('hidden');
+                pauseIcon.classList.remove('hidden');
+                currentSongTitle.textContent = playlist[currentSongIndex].title;
+                currentSongArtist.textContent = `Artist: ${playlist[currentSongIndex].artist}`;
             }).catch(error => {
-                // This catch handles the common "NotAllowedError" if autoplay is blocked.
-                console.warn("Playback failed (likely due to user interaction requirement):", error.message);
-                isPlaying = false;
-                updatePlayPauseIcon(false);
-                currentSongTitle.textContent = "Click Play to Start Music!";
+                console.warn("Autoplay was prevented. User needs to click play button first:", error);
+                currentSongTitle.textContent = "Click to Play!";
+                currentSongArtist.textContent = "No Artist Data";
+                pauseSong(); // Revert to initial state
             });
         }
 
-        /**
-         * Updates the play/pause button icon.
-         * @param {boolean} playing True if currently playing, false otherwise.
-         */
-        function updatePlayPauseIcon(playing) {
-            if (playing) {
-                playIcon.classList.add('hidden');
-                pauseIcon.classList.remove('hidden');
-            } else {
-                playIcon.classList.remove('hidden');
-                pauseIcon.classList.add('hidden');
-            }
+        function pauseSong() {
+            audioPlayer.pause();
+            isPlaying = false;
+            playIcon.classList.remove('hidden');
+            pauseIcon.classList.add('hidden');
         }
 
-        /** Handles the click on the Play/Pause button. */
         function togglePlayPause() {
-            if (audioPlayer.paused) {
-                audioPlayer.play().then(() => {
-                    isPlaying = true;
-                    updatePlayPauseIcon(true);
-                }).catch(error => {
-                    console.error("Error playing audio:", error);
-                });
+            if (isPlaying) {
+                pauseSong();
             } else {
-                audioPlayer.pause();
-                isPlaying = false;
-                updatePlayPauseIcon(false);
+                playSong();
             }
         }
 
-        /** Skips to the next song in the playlist. */
         function nextSong() {
-            loadAndPlaySong(currentTrackIndex + 1);
+            currentSongIndex++;
+            loadSong(currentSongIndex);
+            if (isPlaying) {
+                playSong();
+            } else {
+                pauseIcon.classList.add('hidden');
+                playIcon.classList.remove('hidden');
+            }
         }
 
-        /** Skips to the previous song in the playlist. */
         function prevSong() {
-            loadAndPlaySong(currentTrackIndex - 1);
+            currentSongIndex--;
+            loadSong(currentSongIndex);
+            if (isPlaying) {
+                playSong();
+            } else {
+                pauseIcon.classList.add('hidden');
+                playIcon.classList.remove('hidden');
+            }
         }
-        
-        // --- EVENT LISTENERS ---
 
-        // Initialize the first song (will not auto-play, but sets the title)
-        document.addEventListener('DOMContentLoaded', () => {
-            loadAndPlaySong(currentTrackIndex);
-        });
-
+        // Event Listeners
         playPauseButton.addEventListener('click', togglePlayPause);
         nextButton.addEventListener('click', nextSong);
         prevButton.addEventListener('click', prevSong);
-
-        // Auto-advance to the next song when the current one ends
+        // Auto-play next song when current one finishes
         audioPlayer.addEventListener('ended', nextSong);
 
-        // Update the icon if the user pauses/plays using other means (e.g., media keys)
-        audioPlayer.addEventListener('play', () => updatePlayPauseIcon(true));
-        audioPlayer.addEventListener('pause', () => updatePlayPauseIcon(false));
-
+        // Initialize the player
+        loadSong(currentSongIndex);
 
     </script>
 </body>
-
 </html>
