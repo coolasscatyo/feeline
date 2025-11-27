@@ -1,14 +1,11 @@
-\<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Feeline</title>
-    <!-- Load Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- FONT: Using Comic Relief (Google Font) for a playful, handwritten vibe -->
     <link href="https://fonts.googleapis.com/css2?family=Comic+Relief&display=swap" rel="stylesheet">
-    <!-- FONT: Keeping Kalam as a fallback for stability -->
     <link href="https://fonts.googleapis.com/css2?family=Kalam:wght400;700&display=swap" rel="stylesheet">
 
     <style>
@@ -28,20 +25,24 @@
             /* NEW COLOR: Dark Gray Text */
             color: #374151;
             position: relative; /* Needed for z-index context */
+            transition: background-color 0.2s, color 0.2s; /* Added transition for theme change */
         }
         
-        /* Floating Background Styles */
-        #full-screen-floating {
-            position: fixed; /* Use fixed so it covers the whole viewport */
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            z-index: 1; /* Below the game card (which is z-index 10) */
-            pointer-events: none;
-            overflow: hidden; /* Contains the motion */
+        /* NEW: BLUR EFFECT FOR LOBBY BACKGROUND */
+        .lobby-blurred > :not(#game-view) {
+            /* Target all direct children of body EXCEPT the game view */
+            filter: blur(8px) brightness(0.8); /* Apply blur and slightly dim the background */
+            transition: filter 0.4s ease-in-out;
+            pointer-events: none; /* Prevent interaction with background elements */
         }
-        
+
+        /* Ensure the game view itself is transparent so the blurred background shows through */
+        #game-view {
+            background-color: transparent !important;
+        }
+
+        /* Floating Background Styles - REMOVED FIXED POSITION AND VW/VH */
+        /* It is now absolutely positioned inside the fixed #game-view element */
         .floating-image {
             position: absolute;
             bottom: -150px; /* Start far below the screen */
@@ -57,6 +58,7 @@
             100% { transform: translateY(-120vh) rotate(720deg); opacity: 0; }
         }
 
+        /* The main menu card background/frame */
         .game-card {
             /* UPDATED: Clear background for a framed look */
             background-color: transparent;
@@ -64,12 +66,19 @@
             border: 6px solid #111827;
             /* Adjusted shadow for clear card */
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-            transition: transform 0.1s;
+            transition: transform 0.1s, border-color 0.2s, box-shadow 0.2s; /* Added transitions */
             z-index: 10; /* Ensure the game card is on top of the floating layer */
             position: relative;
             /* Added a subtle blur effect to help readability over background images */
             backdrop-filter: blur(5px);
         }
+        
+        /* NEW: Outline for the Game Box */
+        #game-box {
+            /* Use the same border as the game-card for light mode */
+            border: 6px solid #111827; /* Black Border */
+        }
+
 
         /* Custom styling for the game cards/buttons */
         .game-link-card {
@@ -77,7 +86,7 @@
             background-color: transparent;
             /* NEW COLOR: Light Gray Border */
             border: 2px solid #D1D5DB;
-            transition: transform 0.2s, box-shadow 0.2s;
+            transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s; /* Added transitions */
             text-align: center;
             /* Added a subtle blur effect to help readability over background images */
             backdrop-filter: blur(2px);
@@ -96,7 +105,7 @@
             margin: 0 auto 0.75rem auto; /* Center the image and add bottom margin */
         }
 
-        /* Custom style for the back button (not used in this view but kept) */
+        /* Custom style for the control buttons (Back, Reload, Download, Fullscreen) */
         .back-button {
             /* NEW COLOR: Black Button */
             background-color: #111827;
@@ -114,7 +123,7 @@
             /* CHANGED to Comic Relief, Kalam and Comic Sans */
             font-family: 'Comic Relief', 'Kalam', 'Comic Sans MS', 'Comic Sans', cursive;
             border: 2px solid #D1D5DB;
-            transition: border-color 0.15s, box-shadow 0.15s;
+            transition: border-color 0.15s, box-shadow 0.15s, background-color 0.2s, color 0.2s; /* Added transitions */
         }
         .search-input:focus {
             outline: none;
@@ -131,6 +140,7 @@
             background-color: #ECFEFF; /* Pale Blue Background */
             border: 4px solid #111827;
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+            transition: background-color 0.2s, border-color 0.2s; /* Added transitions */
         }
 
         .player-button {
@@ -154,63 +164,203 @@
                 left: 10px;
                 width: auto;
             }
+            /* Adjust controls on mobile */
+            /* Removed the fixed position styles from here as they are now handled by the game wrapper */
+            .back-button {
+                padding: 0.5rem;
+                font-size: 0.875rem; /* text-sm */
+            }
+            .back-button .sm\:inline { /* Hide text on mobile for back button */
+                display: none;
+            }
         }
+        
+        /* --- NEW: DARK MODE STYLES --- */
+        
+        /* Dark Mode Body */
+        html.dark body {
+            background-color: #111827; /* Dark Blue/Black bg */
+            color: #D1D5DB; /* Light Gray text */
+        }
+        
+        /* Dark Mode Game Card */
+        html.dark .game-card {
+            border-color: #ECFEFF; /* Pale Blue border */
+            box-shadow: 0 5px 15px rgba(236, 254, 255, 0.1); /* Subtle white-ish shadow */
+        }
+        
+        /* NEW: Dark Mode Game Box Outline */
+        html.dark #game-box {
+            border-color: #ECFEFF; /* Pale Blue border */
+        }
+        
+        /* Dark Mode Game Link Card */
+        html.dark .game-link-card {
+            border-color: #4B5563; /* Darker gray border */
+        }
+        html.dark .game-link-card:hover {
+            box-shadow: 0 8px 15px rgba(236, 254, 255, 0.15); /* Brighter white-ish shadow */
+        }
+        
+        /* Dark Mode Control Buttons */
+        html.dark .back-button {
+            background-color: #ECFEFF;
+            color: #111827; /* Dark text on light button */
+        }
+        html.dark .back-button:hover {
+            background-color: #BFDBFE; /* Lighter blue hover */
+            color: #111827;
+        }
+        
+        /* Dark Mode Search Input */
+        html.dark .search-input {
+            background-color: #374151; /* Darker input bg */
+            border-color: #4B5563; /* Darker gray border */
+            color: #E5E7EB; /* Light text */
+        }
+        html.dark .search-input::placeholder {
+            color: #9CA3AF; /* Lighter placeholder */
+        }
+        html.dark .search-input:focus {
+            border-color: #ECFEFF; /* Pale blue ring */
+            box-shadow: 0 0 0 2px rgba(236, 254, 255, 0.1);
+        }
+        
+        /* Dark Mode Music Player */
+        html.dark .music-player {
+            background-color: #1F2937; /* Dark Gray-Blue bg */
+            border-color: #ECFEFF; /* Pale Blue border */
+        }
+        
+        /* Dark Mode Player Button Hover */
+        html.dark .player-button:hover {
+            background-color: #4B5563; /* Darker gray hover */
+        }
+
+        /* Dark Mode Toggle Button Positioning */
+        .theme-toggle-button {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 60; /* Higher than music player */
+        }
+        @media (max-width: 640px) {
+            .theme-toggle-button {
+                top: auto; /* Unset top */
+                bottom: 20px; /* Put it at the bottom left */
+                left: 20px; 
+            }
+        }
+
+        /* --- CUSTOM COLOR PICKER PANEL --- */
+        .color-picker-panel {
+            position: fixed;
+            top: 80px;
+            left: 20px;
+            z-index: 60;
+            background-color: #ECFEFF; /* Match light theme bg */
+            border: 4px solid #111827; /* Match music player border */
+            transition: background-color 0.2s, border-color 0.2s;
+        }
+        .color-picker-panel label,
+        .color-picker-panel p,
+        .color-picker-panel button {
+             font-family: 'Comic Relief', 'Kalam', 'Comic Sans MS', 'Comic Sans', cursive;
+        }
+        .color-picker-panel input[type="color"] {
+            width: 40px;
+            height: 25px;
+            border: none;
+            padding: 0;
+            background: none;
+            cursor: pointer;
+        }
+
+        html.dark .color-picker-panel {
+            background-color: #1F2937; /* Match dark theme music player */
+            border-color: #ECFEFF;
+        }
+        html.dark .color-picker-panel p,
+        html.dark .color-picker-panel label {
+            color: #ECFEFF;
+        }
+        html.dark .color-picker-panel button {
+            background-color: #4B5563;
+            color: #ECFEFF;
+        }
+        html.dark .color-picker-panel button:hover {
+            background-color: #6B7280;
+        }
+        
+        /* Hide on mobile, it's too much */
+        @media (max-width: 640px) {
+            .color-picker-panel {
+                display: none;
+            }
+        }
+        
     </style>
 
 </head>
 
 <body class="p-4">
 
-    <!-- HIDDEN AUDIO ELEMENT for MP3 Playback (Controls are handled via JS) -->
-    <!-- Note: You must provide your own MP3 files in a 'music/' directory for this to work. -->
+    <button id="theme-toggle" class="theme-toggle-button p-2 rounded-full text-gray-800 bg-white border-2 border-gray-800 shadow-md dark:bg-gray-700 dark:border-cyan-100 dark:text-cyan-100">
+        <svg id="theme-toggle-light-icon" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-1.414-1.414M6.343 6.343l-1.414-1.414m12.728 0l1.414 1.414M6.343 17.657l-1.414 1.414M12 17a5 5 0 100-10 5 5 0 000 10z" />
+        </svg>
+        <svg id="theme-toggle-dark-icon" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+        </svg>
+    </button>
+
+    <div class="color-picker-panel p-3 rounded-xl shadow-lg">
+        <p class="text-sm font-bold text-center mb-2">Custom Colors</p>
+        <div class="flex items-center justify-between mb-2 space-x-2">
+            <label for="bg-color-picker" class="text-sm mr-2">BG:</label>
+            <input type="color" id="bg-color-picker" value="#ECFEFF">
+        </div>
+        <div class="flex items-center justify-between space-x-2">
+            <label for="text-color-picker" class="text-sm mr-2">Text:</label>
+            <input type="color" id="text-color-picker" value="#374151">
+        </div>
+        <button id="reset-colors-btn" class="text-xs p-1 w-full mt-3 rounded bg-gray-200 text-gray-800 hover:bg-gray-300 transition-colors">Reset to Theme</button>
+    </div>
+
+
     <audio id="audio-player" preload="auto" loop></audio>
 
 
-    <!-- MUSIC PLAYER WIDGET -->
     <div id="music-player" class="music-player p-3 rounded-xl w-64 text-sm sm:w-auto">
-        <p class="font-bold text-center mb-1 text-[#111827]">Feeline Radio</p>
+        <p class="font-bold text-center mb-1 text-[#111827] dark:text-cyan-100">Feeline Radio</p>
         
-        <!-- Song Title -->
         <div class="text-center mb-1 h-5 overflow-hidden">
-            <span id="current-song-title" class="text-gray-700 font-semibold">Ready to Play!</span>
+            <span id="current-song-title" class="text-gray-700 dark:text-gray-200 font-semibold">Ready to Play!</span>
         </div>
         
-        <!-- NEW: Artist Credit -->
         <div class="text-right mb-2">
-            <span id="current-song-artist" class="text-gray-500 italic text-xs">No Artist Data</span>
+            <span id="current-song-artist" class="text-gray-500 dark:text-gray-400 italic text-xs">No Artist Data</span>
         </div>
 
         <div class="flex justify-center space-x-3">
-            <button id="prev-button" class="player-button p-2 rounded-full bg-white border border-[#111827] text-[#111827] flex items-center justify-center">
-                <!-- Previous Icon (SVG) -->
+            <button id="prev-button" class="player-button p-2 rounded-full bg-white border border-[#111827] text-[#111827] dark:bg-gray-700 dark:border-cyan-100 dark:text-cyan-100 flex items-center justify-center">
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="19 20 9 12 19 4 19 20"></polygon><line x1="5" y1="19" x2="5" y2="5"></line></svg>
             </button>
-            <button id="play-pause-button" class="player-button p-3 rounded-full bg-white border-2 border-[#111827] text-[#111827] flex items-center justify-center">
-                <!-- Play Icon (SVG) -->
+            <button id="play-pause-button" class="player-button p-3 rounded-full bg-white border-2 border-[#111827] text-[#111827] dark:bg-gray-700 dark:border-cyan-100 dark:text-cyan-100 flex items-center justify-center">
                 <svg id="play-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
-                <!-- Pause Icon (SVG) -->
                 <svg id="pause-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="hidden"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg>
             </button>
-            <button id="next-button" class="player-button p-2 rounded-full bg-white border border-[#111827] text-[#111827] flex items-center justify-center">
-                <!-- Next Icon (SVG) -->
+            <button id="next-button" class="player-button p-2 rounded-full bg-white border border-[#111827] text-[#111827] dark:bg-gray-700 dark:border-cyan-100 dark:text-cyan-100 flex items-center justify-center">
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 4 15 12 5 20 5 4"></polygon><line x1="19" y1="5" x2="19" y2="19"></line></svg>
             </button>
         </div>
     </div>
 
 
-    <!-- FLOATING IMAGES CONTAINER (Covers the whole screen) -->
-    <div id="full-screen-floating">
-        <!-- Images will be injected here by JavaScript -->
-    </div>
-
-
-    <!-- GAME NAVIGATION MENU CARD -->
-    <div class="game-card p-6 sm:p-10 rounded-xl max-w-6xl w-full mx-auto my-8">
-        <h1 class="text-5xl font-extrabold text-[#111827] mb-4 text-center">Feeline</h1>
-        <p class="text-xl text-gray-700 mb-6 text-center">Feel that? thats the smooth taste of Cacy! Ideas so good Qottlebup had to steal them!</p>
-        <p class="text-xl text-gray-700 mb-6 text-center">Update: ( ͡° ͜ʖ ͡°)</p>
-        <!-- SEARCH BAR -->
+    <div id="main-menu-view" class="game-card p-6 sm:p-10 rounded-xl max-w-6xl w-full mx-auto my-8">
+        <h1 class="text-5xl font-extrabold text-[#111827] dark:text-cyan-100 mb-4 text-center">Feeline</h1>
+        <p class="text-xl text-gray-700 dark:text-gray-300 mb-6 text-center">Feel that? thats the smooth taste of Cacy! Ideas so good, Qottlebup had to rebrand! its called Qbbic now.</p>
+        <p class="text-xl text-gray-700 dark:text-gray-300 mb-6 text-center">Update: We use iFrames and other shit now. dont worry about the cacy images! they will be updated soon!!!</p>
         <div class="mb-8 flex justify-center">
             <input 
                 type="text" 
@@ -220,532 +370,630 @@
             >
         </div>
         
-        <!-- GAME LINKS GRID -->
         <div id="game-list" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
             
-            <!-- Game 1: Super Mario 64 -->
             <a href="clsupermario64.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="Super Mario 64">
                 <img src="star.gif" alt="Super Mario 64 Icon" class="game-icon">
-                <h3 class="text-xl font-bold mb-0 text-[#111827]">Super Mario 64</h3>
+                <h3 class="text-xl font-bold mb-0 text-[#111827] dark:text-cyan-100">Super Mario 64</h3>
                 I had 63 stars on this game</a>
             
-            <!-- Game 2: Baldi's Basics -->
             <a href="Baldi's Basics Plus(1).html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="Baldi's Basics">
                 <img src="baldi.gif" alt="Baldi's Basics Icon" class="game-icon">
-                <h3 class="text-xl font-bold mb-0 text-[#111827]">Baldi's Basics +</h3>
+                <h3 class="text-xl font-bold mb-0 text-[#111827] dark:text-cyan-100">Baldi's Basics +</h3>
                 Fuck Playtime</a>
 
-            <!-- Game 3: Gobble -->
             <a href="Gobble.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="Gobble Hole">
                 <img src="gobble.png" alt="Gobble Icon" class="game-icon">
-                <h3 class="text-xl font-bold mb-0 text-[#111827]">Gobble</h3>
+                <h3 class="text-xl font-bold mb-0 text-[#111827] dark:text-cyan-100">Gobble</h3>
                 I'm an og, i played this on fancade! it was called "Hole"</a>
 
-            <!-- Game 4: Generic Fighting game maybe -->
             <a href="Generic%20Fighter%20Maybe(1).html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="Generic Fighting game maybe">
                 <img src="generic.jpeg" alt="Generic Fighter Icon" class="game-icon">
-                <h3 class="text-xl font-bold mb-0 text-[#111827]">Generic Fighting game maybe</h3>
+                <h3 class="text-xl font-bold mb-0 text-[#111827] dark:text-cyan-100">Generic Fighting game maybe</h3>
                 Kill a blue guy or die</a>
 
-            <!-- START: Placeholder games -->
             <a href="Hollow%20Knight(1).html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="Hollow Knight">
                 <img src="Hollow.png" alt="Hollow Knight Icon" class="game-icon">
-                <h3 class="text-xl font-bold mb-0 text-[#111827]">Hollow Knight</h3>
+                <h3 class="text-xl font-bold mb-0 text-[#111827] dark:text-cyan-100">Hollow Knight</h3>
                 Silksong sucks!</a>
 
             <a href="Fancy Pants Adventure 2.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="Fancy Pants">
                 <img src="Fancy.png" alt="Fancy Pants Icon" class="game-icon">
-                <h3 class="text-xl font-bold mb-0 text-[#111827]">Fancy Pants!</h3>
+                <h3 class="text-xl font-bold mb-0 text-[#111827] dark:text-cyan-100">Fancy Pants!</h3>
                 I know cuinn will enjoy this</a>
 
-            <!-- Game 7: Granny -->
             <a href="Granny.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="Granny horror">
                 <img src="Granny.png" alt="Granny Icon" class="game-icon">
-                <h3 class="text-xl font-bold mb-0 text-[#111827]">Granny</h3>
+                <h3 class="text-xl font-bold mb-0 text-[#111827] dark:text-cyan-100">Granny</h3>
                 Anyone watched fgteev's song about this game?</a>
 
-            <!-- Game 8: Granny 2 -->
             <a href="Granny 2.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="Granny 2 horror">
                 <img src="Granny2.png" alt="Granny 2 Icon" class="game-icon">
-                <h3 class="text-xl font-bold mb-0 text-[#111827]">Granny 2</h3>
+                <h3 class="text-xl font-bold mb-0 text-[#111827] dark:text-cyan-100">Granny 2</h3>
                 Granny's Houseeee</a>
 
-            <!-- Row 2 (Cards 9-12) -->
             <a href="Jetpack Joyride.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="Joyride Jetpack">
                 <img src="JetpackJoyride.png" alt="Jetpack Joyride Icon" class="game-icon">
-                <h3 class="text-xl font-bold mb-0 text-[#111827]">Jetpack Joyride</h3>
+                <h3 class="text-xl font-bold mb-0 text-[#111827] dark:text-cyan-100">Jetpack Joyride</h3>
                 Classic</a>
 
-            <!-- Game 10: Pou -->
             <a href="Pou.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="Pou pet">
                 <img src="pou.png" alt="Pou Icon" class="game-icon">
-                <h3 class="text-xl font-bold mb-0 text-[#111827]">Pou</h3>
+                <h3 class="text-xl font-bold mb-0 text-[#111827] dark:text-cyan-100">Pou</h3>
                 No! -Not Hungry Pou</a>
 
-            <!-- Game 11: Sandtris -->
             <a href="Sandtris.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="Sandtris Tetris">
                 <img src="sandtris.png" alt="Sandtris Icon" class="game-icon">
-                <h3 class="text-xl font-bold mb-0 text-[#111827]">Sandtris</h3>
+                <h3 class="text-xl font-bold mb-0 text-[#111827] dark:text-cyan-100">Sandtris</h3>
                 Tiktok Streamers average game</a>
 
-            <!-- Game 12: Ragdoll Hit -->
             <a href="Ragdoll Hit.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="Ragdoll Hit physics">
                 <img src="Ragdoll.png" alt="Ragdoll Hit Icon" class="game-icon">
-                <h3 class="text-xl font-bold mb-0 text-[#111827]">Ragdoll Hit</h3>
+                <h3 class="text-xl font-bold mb-0 text-[#111827] dark:text-cyan-100">Ragdoll Hit</h3>
                 i see a buncha kids play this</a>
 
-            <!-- Row 3 (Cards 13-16) -->
             <a href="Slope 2.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="Slope 2 dash">
                 <img src="slope.jpeg" alt="Slope 2 Icon" class="game-icon">
-                <h3 class="text-xl font-bold mb-0 text-[#111827]">Slope 2</h3>
+                <h3 class="text-xl font-bold mb-0 text-[#111827] dark:text-cyan-100">Slope 2</h3>
                 meh its alright</a>
 
-            <!-- Game 14: Pizza Tower -->
             <a href="Pizza Tower.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="Pizza Tower platformer">
                 <img src="pizza.png" alt="Pizza Tower Icon" class="game-icon">
-                <h3 class="text-xl font-bold mb-0 text-[#111827]">Pizza Tower</h3>
+                <h3 class="text-xl font-bold mb-0 text-[#111827] dark:text-cyan-100">Pizza Tower</h3>
                 its good</a>
 
-            <!-- Game 15: 2048 -->
             <a href="Run 3.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="2048 puzzle">
                 <img src="2048.png" alt="2048 Icon" class="game-icon">
-                <h3 class="text-xl font-bold mb-0 text-[#111827]">2048</h3>
+                <h3 class="text-xl font-bold mb-0 text-[#111827] dark:text-cyan-100">2048</h3>
                 sad this is broken</a>
 
-            <!-- Game 16: The Impossible Quiz -->
             <a href="The Impossible Quiz.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="Impossible Quiz trivia">
                 <img src="Skip!.png" alt="Impossible Quiz Icon" class="game-icon">
-                <h3 class="text-xl font-bold mb-0 text-[#111827]">Impossible Quiz</h3>
+                <h3 class="text-xl font-bold mb-0 text-[#111827] dark:text-cyan-100">Impossible Quiz</h3>
                 I quit at like question 50</a>
 
-            <!-- Row 4 (Cards 17-20) - Papa's Games Start -->
             <a href="Papa's Pizeria.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="Papa's Pizzeria cooking">
                 <img src="Pizzeria.png" alt="Papa's Pizzeria Icon" class="game-icon">
-                <h3 class="text-xl font-bold mb-0 text-[#111827]">Pizzeria</h3>
+                <h3 class="text-xl font-bold mb-0 text-[#111827] dark:text-cyan-100">Pizzeria</h3>
                 The rest of the games are just papa's games for now</a>
 
             <a href="Papa's Bakeria.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="Papa's Bakeria cooking">
                 <img src="Bakeria.png" alt="Papa's Bakeria Icon" class="game-icon">
-                <h3 class="text-xl font-bold mb-0 text-[#111827]">Bakeria</h3>
+                <h3 class="text-xl font-bold mb-0 text-[#111827] dark:text-cyan-100">Bakeria</h3>
                 </a>
 
             <a href="Papa's Burgeria.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="Papa's Burgeria cooking">
                 <img src="Burgeria.jpeg" alt="Papa's Burgeria Icon" class="game-icon">
-                <h3 class="text-xl font-bold mb-0 text-[#111827]">Burgeria</h3>
+                <h3 class="text-xl font-bold mb-0 text-[#111827] dark:text-cyan-100">Burgeria</h3>
                 </a>
 
             <a href="Papa's Cheeseria.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="Papa's Cheeseria cooking">
                 <img src="Cheeseria.png" alt="Papa's Cheeseria Icon" class="game-icon">
-                <h3 class="text-xl font-bold mb-0 text-[#111827]">Cheeseria</h3>
+                <h3 class="text-xl font-bold mb-0 text-[#111827] dark:text-cyan-100">Cheeseria</h3>
                 </a>
 
-            <!-- Row 5 (Cards 21-24) -->
             <a href="Papa's Cupcakeria.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="Papa's Cupcakeria cooking">
                 <img src="Cupcakeria.png" alt="Papa's Cupcakeria Icon" class="game-icon">
-                <h3 class="text-xl font-bold mb-0 text-[#111827]">Cupcakeria</h3>
+                <h3 class="text-xl font-bold mb-0 text-[#111827] dark:text-cyan-100">Cupcakeria</h3>
                 </a>
 
             <a href="Papa's Donuteria.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="Papa's Donuteria cooking">
                 <img src="Donuteria.png" alt="Papa's Donuteria Icon" class="game-icon">
-                <h3 class="text-xl font-bold mb-0 text-[#111827]">Donuteria</h3>
+                <h3 class="text-xl font-bold mb-0 text-[#111827] dark:text-cyan-100">Donuteria</h3>
                 </a>
 
             <a href="Papa's Freezeria.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="Papa's Freezeria cooking ice cream">
                 <img src="Freezeria.png" alt="Papa's Freezeria Icon" class="game-icon">
-                <h3 class="text-xl font-bold mb-0 text-[#111827]">Freezeria</h3>
+                <h3 class="text-xl font-bold mb-0 text-[#111827] dark:text-cyan-100">Freezeria</h3>
                 </a>
 
             <a href="Papa's Hot Doggeria.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="Papa's Hot Doggeria cooking">
                 <img src="Hot Doggeria.png" alt="Papa's Hot Doggeria Icon" class="game-icon">
-                <h3 class="text-xl font-bold mb-0 text-[#111827]">Cockeria</h3>
+                <h3 class="text-xl font-bold mb-0 text-[#111827] dark:text-cyan-100">Cockeria</h3>
                 </a>
 
-            <!-- Row 6 (Cards 25-28) -->
             <a href="Papa's Pancakeria.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="Papa's Pancakeria cooking">
                 <img src="Pancakeria.png" alt="Papa's Pancakeria Icon" class="game-icon">
-                <h3 class="text-xl font-bold mb-0 text-[#111827]">Pancakeria</h3>
+                <h3 class="text-xl font-bold mb-0 text-[#111827] dark:text-cyan-100">Pancakeria</h3>
                 </a>
 
             <a href="Papa's Pastaria.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="Papa's Pastaria cooking pasta">
                 <img src="Pastaria.png" alt="Papa's Pastaria Icon" class="game-icon">
-                <h3 class="text-xl font-bold mb-0 text-[#111827]">Pastaria</h3>
+                <h3 class="text-xl font-bold mb-0 text-[#111827] dark:text-cyan-100">Pastaria</h3>
                 my god i hate adding these games, i wonder if anyone will actually play them :/</a>
 
             <a href="Papa's Scooperia.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="Papa's Scooperia cooking">
                 <img src="Scooperia.png" alt="Papa's Scooperia Icon" class="game-icon">
-                <h3 class="text-xl font-bold mb-0 text-[#111827]">Scooperia</h3>
+                <h3 class="text-xl font-bold mb-0 text-[#111827] dark:text-cyan-100">Scooperia</h3>
                 wink wink</a>
 
             <a href="Papa's Sushiria.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="Papa's Sushiria cooking sushi">
                 <img src="Sushiria.png" alt="Papa's Sushiria Icon" class="game-icon">
-                <h3 class="text-xl font-bold mb-0 text-[#111827]">Sushiria</h3>
+                <h3 class="text-xl font-bold mb-0 text-[#111827] dark:text-cyan-100">Sushiria</h3>
                 </a>
 
-            <!-- Row 7 (Cards 29-32) -->
             <a href="Papa's Taco Mia.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="Papa's Taco Mia cooking">
                 <img src="Tacomia.png" alt="Papa's Taco Mia Icon" class="game-icon">
-                <h3 class="text-xl font-bold mb-0 text-[#111827]">Taco Mia</h3>
+                <h3 class="text-xl font-bold mb-0 text-[#111827] dark:text-cyan-100">Taco Mia</h3>
                 </a>
 
             <a href="Papa's Wingeria.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="Papa's Wingeria cooking wings">
                 <img src="Wingeria.png" alt="Papa's Wingeria Icon" class="game-icon">
-                <h3 class="text-xl font-bold mb-0 text-[#111827]">Wingeria</h3>
+                <h3 class="text-xl font-bold mb-0 text-[#111827] dark:text-cyan-100">Wingeria</h3>
                 FINALLY ITS OVER OH MY GOD</a>
 
             <a href="Red Ball 4.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="Red Ball 4 platformer">
                 <img src="Red Ball.png" alt="Red Ball 4 Icon" class="game-icon">
-                <h3 class="text-xl font-bold mb-0 text-[#111827]">Red Ball 4A</h3>
+                <h3 class="text-xl font-bold mb-0 text-[#111827] dark:text-cyan-100">Red Ball 4A</h3>
                 I 100%ed this game it was cool</a>
 
             <a href="Red Ball 4 Vol. 2.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="Red Ball 4 Vol 2 platformer">
                 <img src="Red Ball.png" alt="Red Ball 4 Vol. 2 Icon" class="game-icon">
-                <h3 class="text-xl font-bold mb-0 text-[#111827]">Red Ball 4B</h3>
+                <h3 class="text-xl font-bold mb-0 text-[#111827] dark:text-cyan-100">Red Ball 4B</h3>
                 This section was pretty easy.</a>
 
-            <!-- Row 8 (Cards 33-36) -->
             <a href="Red Ball 4 Vol. 3.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="Red Ball 4 Vol 3 platformer">
                 <img src="Red Ball.png" alt="Red Ball 4 Vol. 3 Icon" class="game-icon">
-                <h3 class="text-xl font-bold mb-0 text-[#111827]">Red Ball 4C</h3>
+                <h3 class="text-xl font-bold mb-0 text-[#111827] dark:text-cyan-100">Red Ball 4C</h3>
                 I HATED that one level where you had to fall down and get all the stars</a>
 
             <a href="Super Mario 63.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="Super Mario 63 platformer shine">
                 <img src="Shine.gif" alt="Super Mario 63 Icon" class="game-icon">
-                <h3 class="text-xl font-bold mb-0 text-[#111827]">Mario 63</h3>
+                <h3 class="text-xl font-bold mb-0 text-[#111827] dark:text-cyan-100">Mario 63</h3>
                 Never played, actually, heard its good though!</a>
 
             <a href="Toss the Turtle.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="Toss The Turtle upgrade">
                 <img src="turtle.png" alt="Toss The Turtle Icon" class="game-icon">
-                <h3 class="text-xl font-bold mb-0 text-[#111827]">Toss The Turtle</h3>
+                <h3 class="text-xl font-bold mb-0 text-[#111827] dark:text-cyan-100">Toss The Turtle</h3>
                 Toss it!!!!</a>
 
             <a href="The Oregon Trail.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="Oregon Trail simulation survival">
                 <img src="oregon.jpg" alt="Oregon Trail Icon" class="game-icon">
-                <h3 class="text-xl font-bold mb-0 text-[#111827]">Oregon Trail</h3>
+                <h3 class="text-xl font-bold mb-0 text-[#111827] dark:text-cyan-100">Oregon Trail</h3>
                 I died because i shat myself 10/10</a>
 
-            <!-- Row 9 (Cards 37-40) -->
             <a href="Kindergarten.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="Kindergarten horror adventure">
                 <img src="NUGGET.png" alt="Kindergarten Icon" class="game-icon">
-                <h3 class="text-xl font-bold mb-0 text-[#111827]">Kindergarten</h3>
+                <h3 class="text-xl font-bold mb-0 text-[#111827] dark:text-cyan-100">Kindergarten</h3>
                 ah kindergarten, just how i remembered it!</a>
 
             <a href="Kindergarten 2.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="Kindergarten 2 horror adventure">
                 <img src="NUGGET3.png" alt="Kindergarten 2 Icon" class="game-icon">
-                <h3 class="text-xl font-bold mb-0 text-[#111827]">Kindergarten 2</h3>
+                <h3 class="text-xl font-bold mb-0 text-[#111827] dark:text-cyan-100">Kindergarten 2</h3>
                 ah kindergarten again, just how i remembered it twice!</a>
 
             <a href="Kindergarten 3.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="Kindergarten 3 horror adventure">
                 <img src="NUGGET2.png" alt="Kindergarten 3 Icon" class="game-icon">
-                <h3 class="text-xl font-bold mb-0 text-[#111827]">Kindergarten 3</h3>
+                <h3 class="text-xl font-bold mb-0 text-[#111827] dark:text-cyan-100">Kindergarten 3</h3>
                 ah kindergarteners, yum!</a>
 
             <a href="Bad Monday Simulator.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="Monday Sim Garfield horror">
                 <img src="Nermal.gif" alt="Bad Monday Simulator Icon" class="game-icon">
-                <h3 class="text-xl font-bold mb-0 text-[#111827]">Bad Monday Sim</h3>
+                <h3 class="text-xl font-bold mb-0 text-[#111827] dark:text-cyan-100">Bad Monday Sim</h3>
                 i eat john, its what i do!</a>
 
-            <!-- Row 10 (Cards 41-44) -->
             <a href="Getting Over It with Bennett Foddy(1).html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="Getting Over It rage physics">
                 <img src="gettingoverit.png" alt="Getting Over It Icon" class="game-icon">
-                <h3 class="text-xl font-bold mb-0 text-[#111827]">Getting Over it</h3>
+                <h3 class="text-xl font-bold mb-0 text-[#111827] dark:text-cyan-100">Getting Over it</h3>
                 ah getting over its, yum!</a>
 
             <a href="Flappy Bird.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="Flappy Bird">
                 <img src="flappybird.png" alt="Flappy Bird Icon" class="game-icon">
-                <h3 class="text-xl font-bold mb-0 text-[#111827]">Flappy Bird</h3>
+                <h3 class="text-xl font-bold mb-0 text-[#111827] dark:text-cyan-100">Flappy Bird</h3>
                 ah repeating myself to be funny, yum!</a>
 
             <a href="Run 3.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="Run 3 dash space">
                 <img src="run.gif" alt="Run 3 Icon" class="game-icon">
-                <h3 class="text-xl font-bold mb-0 text-[#111827]">Run 3</h3>
+                <h3 class="text-xl font-bold mb-0 text-[#111827] dark:text-cyan-100">Run 3</h3>
                 hey guys google boobs on your chromebooks it'd be funny anyways uh runs pretty cool i guess</a>
 
             <a href="The World's Hardest Game.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="Hardest Game skill challenge">
                 <img src="worlds hardest.png" alt="World's Hardest Game Icon" class="game-icon">
-                <h3 class="text-xl font-bold mb-0 text-[#111827]">World's Hardest Game</h3>
+                <h3 class="text-xl font-bold mb-0 text-[#111827] dark:text-cyan-100">World's Hardest Game</h3>
                 Yea its hard, but im harder!</a>
 
             
-            <!-- NEW ROW 11 (Cards 45-48) -->
             <a href="Burrito Bison.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="Burrito Bison launch upgrade">
                 <img src="Burrito.png" alt="Burrito Bison Icon" class="game-icon">
-                <h3 class="text-xl font-bold mb-0 text-[#111827]">Burrito Bison</h3>
+                <h3 class="text-xl font-bold mb-0 text-[#111827] dark:text-cyan-100">Burrito Bison</h3>
                 My brother loves this game, he sucks!</a>
 
             <a href="BitLife.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="BitLife life simulator">
                 <img src="BitLife.png" alt="BitLife Icon" class="game-icon">
-                <h3 class="text-xl font-bold mb-0 text-[#111827]">BitLife</h3>
+                <h3 class="text-xl font-bold mb-0 text-[#111827] dark:text-cyan-100">BitLife</h3>
                 i dont really like this game that much</a>
 
             <a href="Monkey Mart.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="Monkey Mart idle management">
                 <img src="monkey.png" alt="Monkey Mart Icon" class="game-icon">
-                <h3 class="text-xl font-bold mb-0 text-[#111827]">Monkey Mart</h3>
+                <h3 class="text-xl font-bold mb-0 text-[#111827] dark:text-cyan-100">Monkey Mart</h3>
                 oooo oooo aaaa aaaa</a>
 
             <a href="Geometry Dash Lite.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="Geometry Dash GD rhythm">
                 <img src="Geometry.png" alt="Geometry Dash Icon" class="game-icon">
-                <h3 class="text-xl font-bold mb-0 text-[#111827]">Geometry Dash</h3>
+                <h3 class="text-xl font-bold mb-0 text-[#111827] dark:text-cyan-100">Geometry Dash</h3>
                 look guys! its geometry dash NOT ON SCRATCH! i know, amazing right?</a>
 
-            <!-- NEW ROW 12 (Cards 49-52) -->
             <a href="Duck Life 5.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="Duck Life racing training">
                 <img src="Duck Life.png" alt="Duck Life 5 Icon" class="game-icon">
-                <h3 class="text-xl font-bold mb-0 text-[#111827]">Duck Life 5</h3>
+                <h3 class="text-xl font-bold mb-0 text-[#111827] dark:text-cyan-100">Duck Life 5</h3>
                 i always confused this game with "can your pet"</a>
 
             <a href="Drive Mad.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="Drive Mad driving physics">
                 <img src="Drive.png" alt="Drive Mad Icon" class="game-icon">
-                <h3 class="text-xl font-bold mb-0 text-[#111827]">Drive Mad</h3>
+                <h3 class="text-xl font-bold mb-0 text-[#111827] dark:text-cyan-100">Drive Mad</h3>
                 Another game i used to play on fancade, im pretty sure i made a bunch of custom levels on there about this game</a>
 
             <a href="myTeardrop.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="myTeardrop bfdi">
                 <img src="tear.gif" alt="myTeardrop Icon" class="game-icon">
-                <h3 class="text-xl font-bold mb-0 text-[#111827]">myTeardrop</h3>
+                <h3 class="text-xl font-bold mb-0 text-[#111827] dark:text-cyan-100">myTeardrop</h3>
                 bfdi is pretty cool</a>
 
             <a href="Buckshot Roulette.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="Buckshot Roulette horror card">
                 <img src="buckshot.gif" alt="Buckshot Roulette Icon" class="game-icon">
-                <h3 class="text-xl font-bold mb-0 text-[#111827]">Buckshot Roulette</h3>
+                <h3 class="text-xl font-bold mb-0 text-[#111827] dark:text-cyan-100">Buckshot Roulette</h3>
                 The last game before i update the gamesite, and im not sure if it even works!!!! (it does yay ;D)</a>
 
-            <!-- Placeholder spots remain -->
             <a href="https://deltacook.vercel.app/" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="Deltarune">
                 <img src="deltarune.png" alt="deltarune icon" class="game-icon">
-                <h3 class="text-xl font-bold mb-0 text-[#111827]">Deltarune</h3>
+                <h3 class="text-xl font-bold mb-0 text-[#111827] dark:text-cyan-100">Deltarune</h3>
                 gonna climb this fuckin tower</a>
 
             <a href="Undertale Yellow.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="Undertale Yellow">
                 <img src="UndertaleY.png" alt="placeholder icon" class="game-icon">
-                <h3 class="text-xl font-bold mb-0 text-[#111827]">Undertale Yellow</h3>
+                <h3 class="text-xl font-bold mb-0 text-[#111827] dark:text-cyan-100">Undertale Yellow</h3>
                 i don't like this game that much but since i dont have undertale it was either this or deltatraveler</a>
 
             <a href="8 Ball Classic.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="8 ball classic">
                 <img src="8.gif" alt="8 ball icon" class="game-icon">
-                <h3 class="text-xl font-bold mb-0 text-[#111827]">8 Ball Classic</h3>
+                <h3 class="text-xl font-bold mb-0 text-[#111827] dark:text-cyan-100">8 Ball Classic</h3>
                lets play 8 ball!</a>
 
             <a href="Amanda The Adventurer.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="Amanda The Adventurer">
                 <img src="woolu.gif" alt="amanda icon" class="game-icon">
-                <h3 class="text-xl font-bold mb-0 text-[#111827]">Amanda The Adventurer</h3>
-                baaaaaaah</a>            <!-- Placeholder spots remain -->
-            <a href="Angry Birds.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="angry birds">
+                <h3 class="text-xl font-bold mb-0 text-[#111827] dark:text-cyan-100">Amanda The Adventurer</h3>
+                baaaaaaah</a>            <a href="Angry Birds.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="angry birds">
                 <img src="angry-birds.gif" alt="angry icon" class="game-icon">
-                <h3 class="text-xl font-bold mb-0 text-[#111827]">Angry Birds</h3>
+                <h3 class="text-xl font-bold mb-0 text-[#111827] dark:text-cyan-100">Angry Birds</h3>
                 naaa hee haw</a>
 
             <a href="Basket Random.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="basket random">
                 <img src="basket.png" alt="basket random icon" class="game-icon">
-                <h3 class="text-xl font-bold mb-0 text-[#111827]">Basket Random</h3>
+                <h3 class="text-xl font-bold mb-0 text-[#111827] dark:text-cyan-100">Basket Random</h3>
                 i caved in have your stupid basket game</a>
 
             <a href="Binding Of Issac_ Wrath of the Lamb.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="binding of issac">
                 <img src="bind.gif" alt="binding of issac icon" class="game-icon">
-                <h3 class="text-xl font-bold mb-0 text-[#111827]">Binding of Issac</h3>
+                <h3 class="text-xl font-bold mb-0 text-[#111827] dark:text-cyan-100">Binding of Issac</h3>
                 we love you issac</a>
 
             <a href="Bloxorz.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="bloxorz">
                 <img src="bloxorz.png" alt="bloxorz icon" class="game-icon">
-                <h3 class="text-xl font-bold mb-0 text-[#111827]">Bloxorz</h3>
-                i hate and also love this game</a>            <!-- Placeholder spots remain -->
-            <a href=" clundertale.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="placeholder new game">
+                <h3 class="text-xl font-bold mb-0 text-[#111827] dark:text-cyan-100">Bloxorz</h3>
+                i hate and also love this game</a>            <a href=" clundertale.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="placeholder new game">
                 <img src=" undertale-pixel-art.gif" alt="placeholder icon" class="game-icon">
-                <h3 class="text-xl font-bold mb-0 text-[#111827]">Undertale</h3>
-                OKAY... I GUESS I'LL REPEAT MYSELF... RED TILES ARE IMPASSABLE. YELLOW TILES ARE ELECTRIC AND DANGEROUS. BLUE TILES MAKE YOU FIGHT A MONSTER. GREEN TILES ARE WATER TILES. ORANGE TILES ARE ORANGE SCENTED. IF YOU STEP ON ORANGE, DON'T STEP ON GREEN. BROWN TILES ARE... WAIT!!! THERE ARE NO BROWN TILES... PURPLE TILES SMELL LIKE LEMONS... WHY DON'T THE YELLOW ONES SMELL LEMONY? UMM... WAIT!! DID I MIX UP GREEN AND BLUE!? THE BLUE ONES ARE WATER ONES! PINK TILES... I DON'T... REMEMBER??? WAIT!!! THOSE ONES DON'T DO ANYTHING. OKAY! DO YOU UNDERSTAND BETTER NOW!? </a>
+                <h3 class="text-xl font-bold mb-0 text-[#111827] dark:text-cyan-100">Undertale</h3>
+                OKAY... I GUESS I'LL REPEAT MYSELF... RED TILES ARE IMPASSABLE. YELLOW TILES ARE ELECTRIC AND DANGEROUS. BLUE TILES ARE WATER TILES. GREEN TILES ARE WATER TILES. ORANGE TILES ARE ORANGE SCENTED. IF YOU STEP ON ORANGE, DON'T STEP ON GREEN. BROWN TILES ARE... WAIT!!! THERE ARE NO BROWN TILES... PURPLE TILES SMELL LIKE LEMONS... WHY DON'T THE YELLOW ONES SMELL LEMONY? UMM... WAIT!! DID I MIX UP GREEN AND BLUE!? THE BLUE ONES ARE WATER ONES! PINK TILES... I DON'T... REMEMBER??? WAIT!!! THOSE ONES DON'T DO ANYTHING. OKAY! DO YOU UNDERSTAND BETTER NOW!? </a>
 
             <a href="clpokemonemerald.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="placeholder new game">
                 <img src="emerald.jpg" alt="placeholder icon" class="game-icon">
-                <h3 class="text-xl font-bold mb-0 text-[#111827]">Pokemon Emerald</h3>, 
-                Sunflora, Igglybuff, Piloswine, Slugma,Crobat, Politoed, Noctowl, Houndour, Heracross, Natu, Tyrogue, Ariados, Lugia, Steelix, Phanpy, Ampharos, Sudowoodo, Corsola, Teddiursa, Sneasel, Forretress, Mantine, Pichu, Larvitar, Hoothoot, Miltank, Totodile, Gligar, Lanturn, Skarmory, Spinarak, Tyranitar, Chikorita, Dunsparce, Aipom, Pupitar, Porygon2, Cyndaquil, Elekid, Raikou, Wobbuffet, Typhlosion, Granbull, Stantler, Espeon, Ledyba, Togepi, Qwilfish, Ho-Oh, Azumarill, Croconaw, Snubbull, Ursaring, Yanma, Smoochum, Slowking, Blissey, Scizor, Donphan, Houndoom- (text to long to finish)</a>
+                <h3 class="text-xl font-bold mb-0 text-[#111827] dark:text-cyan-100">Pokemon Emerald</h3>, 
+                Sunflora, Igglybuff, Piloswine, Slugma,Crobat, Politoed, Noctowl, Houndour, Heracross, Natu, Tyrogue, Ariados, Lugia, Steelix, Phanpy, Ampharos, Sudowoodo, Corsola, Teddiursa, Sneasel, Forretress, Mantine, Pichu, Larvitar, Hoothoot, Miltank, Totodile, Gligar, Lanturn, Skarmory, Spinarak, Tyranitar, Chikorita, Dunsparce, Aipom, Pupitar, Porygon2, Cyndaquil, Elekid, Raikou, Wobbuff_ (text to long to finish)</a>
             
             <a href="Amaze.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="placeholder new game">
                 <img src="amaze.png" alt="placeholder icon" class="game-icon">
-                <h3 class="text-xl font-bold mb-0 text-[#111827]">AMAZE!</h3>
+                <h3 class="text-xl font-bold mb-0 text-[#111827] dark:text-cyan-100">AMAZE!</h3>
                 uhhhhhh</a>
 
             <a href="=Angry Birds.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="placeholder new game">
                 <img src="red.png" alt="placeholder icon" class="game-icon">
-                <h3 class="text-xl font-bold mb-0 text-[#111827]">Angry Birds</h3>
-                idk what to clear up the space with for these games ¯\_ (ᵕ—ᴗ—)_/¯</a>            <!-- Placeholder spots remain -->
-            
-            <a href="Bank Robbery 2.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="placeholder new game">
+                <h3 class="text-xl font-bold mb-0 text-[#111827] dark:text-cyan-100">Angry Birds</h3>
+                idk what to clear up the space with for these games ¯\_ (ᵕ—ᴗ—)_/¯</a>            <a href="Bank Robbery 2.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="placeholder new game">
                 <img src="bank.jpg" alt="placeholder icon" class="game-icon">
-                <h3 class="text-xl font-bold mb-0 text-[#111827]">Bank Robbery</h3>
+                <h3 class="text-xl font-bold mb-0 text-[#111827] dark:text-cyan-100">Bank Robbery</h3>
                 im evil and stealing money mwahahahah</a>
 
             <a href="Dadish.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="placeholder new game">
                 <img src="dadish.jpeg" alt="placeholder icon" class="game-icon">
-                <h3 class="text-xl font-bold mb-0 text-[#111827]">Dadish</h3>
+                <h3 class="text-xl font-bold mb-0 text-[#111827] dark:text-cyan-100">Dadish</h3>
                 My radish is a dad to billions</a>
 
             <a href="Dadish.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="placeholder new game">
                 <img src="dadish3d.jpeg" alt="placeholder icon" class="game-icon">
-                <h3 class="text-xl font-bold mb-0 text-[#111827]">Dadish 3d</h3>
+                <h3 class="text-xl font-bold mb-0 text-[#111827] dark:text-cyan-100">Dadish 3d</h3>
                 My radish 3d is a dad 3d to 3d billions</a>
 
             <a href="Escape Road.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="placeholder new game">
                 <img src="road.png" alt="placeholder icon" class="game-icon">
-                <h3 class="text-xl font-bold mb-0 text-[#111827]">Escape Road</h3>
-                i used to clown this but its actually fire</a>            <!-- Placeholder spots remain -->
-            <a href="Basket Battle.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="placeholder new game">
+                <h3 class="text-xl font-bold mb-0 text-[#111827] dark:text-cyan-100">Escape Road</h3>
+                i used to clown this but its actually fire</a>            <a href="Basket Battle.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="placeholder new game">
                 <img src="basket.jpeg" alt="placeholder icon" class="game-icon">
-                <h3 class="text-xl font-bold mb-0 text-[#111827]">Basket battle</h3>
+                <h3 class="text-xl font-bold mb-0 text-[#111827] dark:text-cyan-100">Basket battle</h3>
                 The only goated basket ball game not sorry brah</a>
 
             <a href="Bouncemasters.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="placeholder new game">
                 <img src="ilovebigbouncyballsonmytongue.jpeg" alt="placeholder icon" class="game-icon">
-                <h3 class="text-xl font-bold mb-0 text-[#111827]">Bouncemasters</h3>
+                <h3 class="text-xl font-bold mb-0 text-[#111827] dark:text-cyan-100">Bouncemasters</h3>
                 burrito bison and this are almost the same </a>
 
             <a href="Cluster Rush.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="placeholder new game">
                 <img src="cluster.jpeg" alt="placeholder icon" class="game-icon">
-                <h3 class="text-xl font-bold mb-0 text-[#111827]">Cluster Rush</h3>
+                <h3 class="text-xl font-bold mb-0 text-[#111827] dark:text-cyan-100">Cluster Rush</h3>
                 basic ass game</a>
 
             <a href="Cookie Clicker.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="placeholder new game">
                 <img src="cookie.jpeg" alt="placeholder icon" class="game-icon">
-                <h3 class="text-xl font-bold mb-0 text-[#111827]">Cookie Clicker</h3>
+                <h3 class="text-xl font-bold mb-0 text-[#111827] dark:text-cyan-100">Cookie Clicker</h3>
                 the classic</a>    
-            <!-- Placeholder spots remain -->
             <a href="Final Earth 2.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="placeholder new game">
                 <img src="final.jpeg" alt="placeholder icon" class="game-icon">
-                <h3 class="text-xl font-bold mb-0 text-[#111827]">Final Earth 2</h3>
+                <h3 class="text-xl font-bold mb-0 text-[#111827] dark:text-cyan-100">Final Earth 2</h3>
                 Dont remember adding this game?????</a>
 
             <a href="Five Nights At Freddy's.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="placeholder new game">
                 <img src="fnaf.png" alt="placeholder icon" class="game-icon">
-                <h3 class="text-xl font-bold mb-0 text-[#111827]">FNAF</h3>
+                <h3 class="text-xl font-bold mb-0 text-[#1V] dark:text-cyan-100">FNAF</h3>
                 I AM NOT ADDING EVERY FNAF GAME</a>
 
             <a href="Granny 3.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="placeholder new game">
                 <img src="granny3.png" alt="placeholder icon" class="game-icon">
-                <h3 class="text-xl font-bold mb-0 text-[#111827]">Granny 3</h3>
+                <h3 class="text-xl font-bold mb-0 text-[#111827] dark:text-cyan-100">Granny 3</h3>
                 the one with slendrina</a>
             <a href="Growden.io.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="placeholder new game">
                 <img src="garden.jpeg" alt="placeholder icon" class="game-icon">
-                <h3 class="text-xl font-bold mb-0 text-[#111827]">Grow A Garden</h3>
+                <h3 class="text-xl font-bold mb-0 text-[#111827] dark:text-cyan-100">Grow A Garden</h3>
                 garden growers 9000</a>            
-            <!-- Placeholder spots remain -->
             <a href="Karlson.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="placeholder new game">
                 <img src="Karlson.jpeg" alt="placeholder icon" class="game-icon">
-                <h3 class="text-xl font-bold mb-0 text-[#111827]">Karlson</h3>
+                <h3 class="text-xl font-bold mb-0 text-[#111827] dark:text-cyan-100">Karlson</h3>
                 cuinn and nathan DO YOUR WORK NOW!!!!!!!</a>
 
             <a href="Minecraft 1.8.8.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="placeholder new game">
                 <img src="mine.jpeg" alt="placeholder icon" class="game-icon">
-                <h3 class="text-xl font-bold mb-0 text-[#111827]">Minecraft</h3>
+                <h3 class="text-xl font-bold mb-0 text-[#111827] dark:text-cyan-100">Minecraft</h3>
                 so like, incase you dont know about this game, you have to like, mine, and like, craft, so like.. yeah.</a>
 
             <a href="Plants vs Zombies.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="placeholder new game">
                 <img src="pvz.png" alt="placeholder icon" class="game-icon">
-                <h3 class="text-xl font-bold mb-0 text-[#111827]">PVZ Flash</h3>
+                <h3 class="text-xl font-bold mb-0 text-[#111827] dark:text-cyan-100">PVZ Flash</h3>
                 only day levels sadly, dont worry though ill add DS PVZ soon!</a>
 
             <a href="Monster Tracks.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="placeholder new game">
                 <img src="monster.jpeg" alt="placeholder icon" class="game-icon">
-                <h3 class="text-xl font-bold mb-0 text-[#111827]">Monster Tracks</h3>
+                <h3 class="text-xl font-bold mb-0 text-[#111827] dark:text-cyan-100">Monster Tracks</h3>
                 It's endless drive mad!!!</a>            
-            <!-- Placeholder spots remain -->
             <a href="Nazi Zombies_ Portable.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="placeholder new game">
                 <img src="nazi.jpeg" alt="placeholder icon" class="game-icon">
-                <h3 class="text-xl font-bold mb-0 text-[#111827]">Nazi Zombies; Portable</h3>
+                <h3 class="text-xl font-bold mb-0 text-[#111827] dark:text-cyan-100">Nazi Zombies; Portable</h3>
                 You can kill green adolf hitler??? 10/10</a>
 
             <a href="Time Shooter 1.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="placeholder new game">
                 <img src="crappy.png" alt="placeholder icon" class="game-icon">
-                <h3 class="text-xl font-bold mb-0 text-[#111827]">Time Shooter</h3>
+                <h3 class="text-xl font-bold mb-0 text-[#111827] dark:text-cyan-100">Time Shooter</h3>
                 Here, diego... >:(</a>
 
             <a href="Time Shooter 2.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="placeholder new game">
                 <img src="time.png" alt="placeholder icon" class="game-icon">
-                <h3 class="text-xl font-bold mb-0 text-[#111827]">Time Shooter 2</h3>
+                <h3 class="text-xl font-bold mb-0 text-[#111827] dark:text-cyan-100">Time Shooter 2</h3>
                 </a>
 
             <a href="Time Shooter 3_ SWAT.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="placeholder new game">
                 <img src="time2.png" alt="placeholder icon" class="game-icon">
-                <h3 class="text-xl font-bold mb-0 text-[#111827]">Time Shooter 3</h3>
+                <h3 class="text-xl font-bold mb-0 text-[#111827] dark:text-cyan-100">Time Shooter 3</h3>
                 </a>            
-            <!-- Placeholder spots remain -->
             <a href="index(1).html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="placeholder new game">
                 <img src="android-chrome-192x192.png" alt="placeholder icon" class="game-icon">
-                <h3 class="text-xl font-bold mb-0 text-[#111827]">yohoho.io</h3>
+                <h3 class="text-xl font-bold mb-0 text-[#111827] dark:text-cyan-100">yohoho.io</h3>
                 IT WAS SO ANNOYING GETTING ALL THE FILES BUT I DID IT!!!!!!!!</a>
 
             <a href="gamesite.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="placeholder new game">
                 <img src="cacy.png" alt="placeholder icon" class="game-icon">
-                <h3 class="text-xl font-bold mb-0 text-[#111827]">New Game</h3>
+                <h3 class="text-xl font-bold mb-0 text-[#111827] dark:text-cyan-100">New Game</h3>
                 This is a placeholder for a soon to be added game!</a>
 
             <a href="gamesite.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="placeholder new game">
                 <img src="cacy.png" alt="placeholder icon" class="game-icon">
-                <h3 class="text-xl font-bold mb-0 text-[#111827]">New Game</h3>
+                <h3 class="text-xl font-bold mb-0 text-[#1E] dark:text-cyan-100">New Game</h3>
                 This is a placeholder for a soon to be added game!</a>
 
             <a href="gamesite.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="placeholder new game">
                 <img src="cacy.png" alt="placeholder icon" class="game-icon">
-                <h3 class="text-xl font-bold mb-0 text-[#111827]">New Game</h3>
-                This is a placeholder for a soon to be added game!</a>            <!-- Placeholder spots remain -->
-            <a href="gamesite.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="placeholder new game">
+                <h3 class="text-xl font-bold mb-0 text-[#111827] dark:text-cyan-100">New Game</h3>
+                This is a placeholder for a soon to be added game!</a>            <a href="gamesite.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="placeholder new game">
                 <img src="cacy.png" alt="placeholder icon" class="game-icon">
-                <h3 class="text-xl font-bold mb-0 text-[#111827]">New Game</h3>
+                <h3 class="text-xl font-bold mb-0 text-[#111827] dark:text-cyan-100">New Game</h3>
                 This is a placeholder for a soon to be added game!</a>
 
             <a href="gamesite.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="placeholder new game">
                 <img src="cacy.png" alt="placeholder icon" class="game-icon">
-                <h3 class="text-xl font-bold mb-0 text-[#111827]">New Game</h3>
+                <h3 class="text-xl font-bold mb-0 text-[#111827] dark:text-cyan-100">New Game</h3>
                 This is a placeholder for a soon to be added game!</a>
 
             <a href="gamesite.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="placeholder new game">
                 <img src="cacy.png" alt="placeholder icon" class="game-icon">
-                <h3 class="text-xl font-bold mb-0 text-[#111827]">New Game</h3>
+                <h3 class="text-xl font-bold mb-0 text-[#111827] dark:text-cyan-100">New Game</h3>
                 This is a placeholder for a soon to be added game!</a>
 
             <a href="gamesite.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="placeholder new game">
                 <img src="cacy.png" alt="placeholder icon" class="game-icon">
-                <h3 class="text-xl font-bold mb-0 text-[#111827]">New Game</h3>
-                This is a placeholder for a soon to be added game!</a>            <!-- Placeholder spots remain -->
-            <a href="gamesite.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="placeholder new game">
+                <h3 class="text-xl font-bold mb-0 text-[#111827] dark:text-cyan-100">New Game</h3>
+                This is a placeholder for a soon to be added game!</a>            <a href="gamesite.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="placeholder new game">
                 <img src="cacy.png" alt="placeholder icon" class="game-icon">
-                <h3 class="text-xl font-bold mb-0 text-[#111827]">New Game</h3>
+                <h3 class="text-xl font-bold mb-0 text-[#111827] dark:text-cyan-100">New Game</h3>
                 This is a placeholder for a soon to be added game!</a>
 
             <a href="gamesite.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="placeholder new game">
                 <img src="cacy.png" alt="placeholder icon" class="game-icon">
-                <h3 class="text-xl font-bold mb-0 text-[#111827]">New Game</h3>
+                <h3 class="text-xl font-bold mb-0 text-[#111827] dark:text-cyan-100">New Game</h3>
                 This is a placeholder for a soon to be added game!</a>
 
             <a href="gamesite.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="placeholder new game">
                 <img src="cacy.png" alt="placeholder icon" class="game-icon">
-                <h3 class="text-xl font-bold mb-0 text-[#111827]">New Game</h3>
+                <h3 class="text-xl font-bold mb-0 text-[#111827] dark:text-cyan-100">New Game</h3>
                 This is a placeholder for a soon to be added game!</a>
 
             <a href="gamesite.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="placeholder new game">
                 <img src="cacy.png" alt="placeholder icon" class="game-icon">
-                <h3 class="text-xl font-bold mb-0 text-[#111827]">New Game</h3>
-                This is a placeholder for a soon to be added game!</a>            <!-- Placeholder spots remain -->
-            <a href="gamesite.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="placeholder new game">
+                <h3 class="text-xl font-bold mb-0 text-[#111827] dark:text-cyan-100">New Game</h3>
+                This is a placeholder for a soon to be added game!</a>            <a href="gamesite.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="placeholder new game">
                 <img src="cacy.png" alt="placeholder icon" class="game-icon">
-                <h3 class="text-xl font-bold mb-0 text-[#111827]">New Game</h3>
+                <h3 class="text-xl font-bold mb-0 text-[#111827] dark:text-cyan-100">New Game</h3>
                 This is a placeholder for a soon to be added game!</a>
 
             <a href="gamesite.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="placeholder new game">
                 <img src="cacy.png" alt="placeholder icon" class="game-icon">
-                <h3 class="text-xl font-bold mb-0 text-[#111827]">New Game</h3>
+                <h3 class="text-xl font-bold mb-0 text-[#111827] dark:text-cyan-100">New Game</h3>
                 This is a placeholder for a soon to be added game!</a>
 
             <a href="gamesite.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="placeholder new game">
                 <img src="cacy.png" alt="placeholder icon" class="game-icon">
-                <h3 class="text-xl font-bold mb-0 text-[#111827]">New Game</h3>
+                <h3 class="text-xl font-bold mb-0 text-[#111827] dark:text-cyan-100">New Game</h3>
                 This is a placeholder for a soon to be added game!</a>
 
             <a href="gamesite.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="placeholder new game">
                 <img src="cacy.png" alt="placeholder icon" class="game-icon">
-                <h3 class="text-xl font-bold mb-0 text-[#111827]">New Game</h3>
+                <h3 class="text-xl font-bold mb-0 text-[#111827] dark:text-cyan-100">New Game</h3>
                 This is a placeholder for a soon to be added game!</a>
                 
         </div>
     </div>
+    
+    <div id="game-view" class="hidden fixed inset-0 w-full h-full z-40 flex items-center justify-center p-4">
+        
+        <div id="full-screen-floating" class="absolute inset-0 w-full h-full z-30 pointer-events-none overflow-hidden">
+            </div>
+
+        <div id="game-wrapper" class="relative w-full max-w-6xl max-h-full h-full flex items-center justify-center z-40"> 
+
+            <div id="game-controls-container" class="absolute -top-1 left-0 z-50 flex space-x-3">
+                
+                <button id="back-to-menu" class="back-button p-3 rounded-lg text-white text-xl shadow-lg flex items-center space-x-2" title="Back to Main Menu">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                    </svg>
+                    <span class="hidden sm:inline">Back to Menu</span>
+                </button>
+                
+                <button id="reload-game-button" class="back-button p-3 rounded-lg text-white text-xl shadow-lg flex items-center justify-center" title="Reload Game">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h5M4 4L9 9m9 4a8 8 0 11-16 0 8 8 0 0116 0z" />
+                    </svg>
+                </button>
+                
+                <button id="download-game-button" class="back-button p-3 rounded-lg text-white text-xl shadow-lg flex items-center justify-center" title="Download Game File">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                    </svg>
+                </button>
+                
+                <button id="fullscreen-button" class="back-button p-3 rounded-lg text-white text-xl shadow-lg flex items-center justify-center" title="Enter Fullscreen">
+                    <svg id="fullscreen-icon" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path id="maximize-path" stroke-linecap="round" stroke-linejoin="round" d="M4 8V4m0 0h4M4 4l5 5m11-5v4m0 0h-4m4-4l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5v-4m0 4h-4m4 0l-5-5" />
+                    </svg>
+                </button>
+
+            </div>
+            
+            <div id="game-box" class="w-full max-h-full aspect-video bg-white dark:bg-gray-800 rounded-xl shadow-2xl overflow-hidden relative mt-12"> 
+                 <iframe id="game-iframe" src="" frameborder="0" class="w-full h-full" allow="accelerometer; gyroscope; fullscreen"></iframe>
+            </div>
+
+        </div>
+    </div>
+
 
     <script>
+        // --- 0. Dark Mode Toggle ---
+        const themeToggleBtn = document.getElementById('theme-toggle');
+        const lightIcon = document.getElementById('theme-toggle-light-icon');
+        const darkIcon = document.getElementById('theme-toggle-dark-icon');
+
+        // --- 0.5 Custom Color Controls ---
+        const bgColorPicker = document.getElementById('bg-color-picker');
+        const textColorPicker = document.getElementById('text-color-picker');
+        const resetColorsBtn = document.getElementById('reset-colors-btn');
+
+        // Helper function to set theme
+        function setTheme(isDark) {
+            const savedBg = localStorage.getItem('customBgColor');
+            const savedText = localStorage.getItem('customTextColor');
+
+            if (isDark) {
+                document.documentElement.classList.add('dark');
+                lightIcon.classList.add('hidden');
+                darkIcon.classList.remove('hidden');
+                localStorage.setItem('theme', 'dark');
+                // Update pickers *only if* no custom color is set
+                if (!savedBg) bgColorPicker.value = '#111827';
+                if (!savedText) textColorPicker.value = '#D1D5DB';
+            } else {
+                document.documentElement.classList.remove('dark');
+                lightIcon.classList.remove('hidden');
+                darkIcon.classList.add('hidden');
+                localStorage.setItem('theme', 'light');
+                // Update pickers *only if* no custom color is set
+                if (!savedBg) bgColorPicker.value = '#ECFEFF';
+                if (!savedText) textColorPicker.value = '#374151';
+            }
+        }
+
+        // Toggle theme on button click
+        themeToggleBtn.addEventListener('click', () => {
+            const isDarkMode = document.documentElement.classList.contains('dark');
+            setTheme(!isDarkMode);
+        });
+
+        // Check for saved theme in localStorage or system preference on load
+        (function onPageLoad() {
+            // 1. Set Light/Dark Theme
+            const savedTheme = localStorage.getItem('theme');
+            const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+            if (savedTheme === 'dark' || (!savedTheme && systemPrefersDark)) {
+                setTheme(true);
+            } else {
+                setTheme(false); // Default to light
+            }
+            
+            // 2. Load Custom Colors (which override theme if they exist)
+            const savedBg = localStorage.getItem('customBgColor');
+            const savedText = localStorage.getItem('customTextColor');
+            
+            if (savedBg) {
+                document.body.style.backgroundColor = savedBg;
+                bgColorPicker.value = savedBg;
+            }
+            if (savedText) {
+                document.body.style.color = savedText;
+                textColorPicker.value = savedText;
+            }
+        })();
+
+        // --- Event Listeners for Custom Colors ---
+
+        bgColorPicker.addEventListener('input', (e) => {
+            const newBg = e.target.value;
+            document.body.style.backgroundColor = newBg;
+            localStorage.setItem('customBgColor', newBg);
+        });
+
+        textColorPicker.addEventListener('input', (e) => {
+            const newText = e.target.value;
+            document.body.style.color = newText;
+            localStorage.setItem('customTextColor', newText);
+        });
+
+        resetColorsBtn.addEventListener('click', () => {
+            localStorage.removeItem('customBgColor');
+            localStorage.removeItem('customTextColor');
+            // Remove inline styles
+            document.body.style.backgroundColor = '';
+            document.body.style.color = '';
+            // Re-run the theme logic to apply the correct theme colors
+            const isDark = document.documentElement.classList.contains('dark');
+            setTheme(isDark);
+        });
+
+
         // --- 1. Game Search Functionality ---
         document.getElementById('game-search').addEventListener('input', function() {
             const searchTerm = this.value.toLowerCase().trim();
@@ -895,7 +1143,7 @@
             }
         }
 
-        // Event Listeners
+        // Event Listeners for Music Player
         playPauseButton.addEventListener('click', togglePlayPause);
         nextButton.addEventListener('click', nextSong);
         prevButton.addEventListener('click', prevSong);
@@ -904,24 +1152,144 @@
 
         // Initialize the player
         loadSong(currentSongIndex);
+        
+        // --- 4. IFRAME GAME LOGIC ---
+        const body = document.body; // NEW: Get body reference for blur class
+        const mainMenu = document.getElementById('main-menu-view');
+        const gameView = document.getElementById('game-view');
+        const gameBox = document.getElementById('game-box'); 
+        const gameIframe = document.getElementById('game-iframe');
+        const backButton = document.getElementById('back-to-menu');
+        const gameLinks = document.querySelectorAll('#game-list a');
+        
+        // Controls
+        const reloadButton = document.getElementById('reload-game-button');
+        const downloadButton = document.getElementById('download-game-button');
+        const fullscreenButton = document.getElementById('fullscreen-button'); 
+        const fullscreenIcon = document.getElementById('fullscreen-icon'); 
+        let currentLoadedGameUrl = '';
+
+        // 4.1 Handle Game Link Click
+        gameLinks.forEach(link => {
+            link.addEventListener('click', function(event) {
+                event.preventDefault(); // *** Stop default navigation to load in same window ***
+                
+                const gameUrl = this.getAttribute('href');
+                const gameTitle = this.getAttribute('data-title');
+                
+                currentLoadedGameUrl = gameUrl; // Store the URL for reload/download
+
+                // Stop music when starting a game
+                pauseSong(); 
+                
+                // Hide the main menu and show the game view (overlay)
+                mainMenu.classList.add('hidden');
+                gameView.classList.remove('hidden');
+                
+                // NEW: Apply blur effect to the lobby background
+                body.classList.add('lobby-blurred');
+
+                // Load the game into the iframe
+                gameIframe.src = gameUrl;
+                
+                // Optional: Update document title for context
+                document.title = `${gameTitle} - Feeline`;
+                
+                // Hide music player, and color picker for better focus
+                document.getElementById('music-player').classList.add('hidden');
+                document.querySelector('.theme-toggle-button').classList.add('hidden');
+                document.querySelector('.color-picker-panel').classList.add('hidden');
+            });
+        });
+
+        // 4.2 Handle Back Button Click
+        backButton.addEventListener('click', () => {
+            // Check if we are in fullscreen mode and exit first
+            if (document.fullscreenElement) {
+                document.exitFullscreen();
+            }
+
+            // NEW: Remove blur effect from the lobby background
+            body.classList.remove('lobby-blurred');
+            
+            // Stop the game and clear the iframe
+            gameIframe.src = '';
+            
+            // Clear stored URL
+            currentLoadedGameUrl = '';
+
+            // Hide the game view and show the main menu
+            gameView.classList.add('hidden');
+            mainMenu.classList.remove('hidden');
+            
+            // Reset document title
+            document.title = 'Feeline';
+            
+            // Restore music player, and color picker
+            document.getElementById('music-player').classList.remove('hidden');
+            document.querySelector('.theme-toggle-button').classList.remove('hidden');
+            document.querySelector('.color-picker-panel').classList.remove('hidden');
+        });
+
+        // 4.3 Reload Button Logic
+        reloadButton.addEventListener('click', () => {
+            if (currentLoadedGameUrl) {
+                gameIframe.src = currentLoadedGameUrl; 
+            }
+        });
+
+        // 4.4 Download Button Logic
+        downloadButton.addEventListener('click', () => {
+            if (currentLoadedGameUrl) {
+                // Create a temporary anchor element
+                const a = document.createElement('a');
+                a.href = currentLoadedGameUrl;
+                
+                // Set the download attribute. Uses the filename from the URL, or a fallback.
+                const urlParts = currentLoadedGameUrl.split('/');
+                const filename = urlParts[urlParts.length - 1] || 'game_file.html';
+                a.download = filename;
+                
+                // Programmatically click the anchor to trigger the download
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+            }
+        });
+        
+        // 4.5 Fullscreen Button Logic
+        fullscreenButton.addEventListener('click', () => {
+            // We request fullscreen on the iframe, or the closest element that works.
+            const targetElement = gameIframe; 
+
+            if (document.fullscreenElement) {
+                document.exitFullscreen();
+            } else {
+                if (targetElement.requestFullscreen) {
+                    targetElement.requestFullscreen();
+                } else if (targetElement.webkitRequestFullscreen) { /* Safari */
+                    targetElement.webkitRequestFullscreen();
+                } else if (targetElement.msRequestFullscreen) { /* IE11 */
+                    targetElement.msRequestFullscreen();
+                }
+            }
+        });
+        
+        // 4.6 Listen for fullscreen change to update button icon (good UX)
+        document.addEventListener('fullscreenchange', () => {
+            const isFullscreen = !!document.fullscreenElement;
+            
+            if (isFullscreen) {
+                // Icon for "Exit Fullscreen" (Shrink/Minimize)
+                fullscreenIcon.innerHTML = `<path id="minimize-path" stroke-linecap="round" stroke-linejoin="round" d="M15 17h5m0 0v5m0-5l-5-5M4 8V4m0 0h4M4 4l5 5m11-5v4m0 0h-4m4-4l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5v-4m0 4h-4m4 0l-5-5" />`;
+                fullscreenButton.title = 'Exit Fullscreen (Press ESC)';
+            } else {
+                // Icon for "Enter Fullscreen" (Maximize)
+                fullscreenIcon.innerHTML = `<path id="maximize-path" stroke-linecap="round" stroke-linejoin="round" d="M4 8V4m0 0h4M4 4l5 5m11-5v4m0 0h-4m4-4l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5v-4m0 4h-4m4 0l-5-5" />`;
+                fullscreenButton.title = 'Enter Fullscreen';
+            }
+        });
 
     </script>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
