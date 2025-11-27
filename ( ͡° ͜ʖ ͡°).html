@@ -28,21 +28,23 @@
             transition: background-color 0.2s, color 0.2s; /* Added transition for theme change */
         }
         
-        /* NEW: BLUR EFFECT FOR LOBBY BACKGROUND */
-        .lobby-blurred > :not(#game-view) {
-            /* Target all direct children of body EXCEPT the game view */
+        /* NEW: Blur/Dimming effect for the body when a game is active */
+        /* UPDATED: Exclude the color picker and theme toggle from the blur */
+        .game-active-bg > :not(#game-view):not(.color-picker-panel):not(.theme-toggle-button) {
+            /* Target all direct children of body EXCEPT the game view, color picker, and theme toggle button */
             filter: blur(8px) brightness(0.8); /* Apply blur and slightly dim the background */
             transition: filter 0.4s ease-in-out;
             pointer-events: none; /* Prevent interaction with background elements */
         }
+
 
         /* Ensure the game view itself is transparent so the blurred background shows through */
         #game-view {
             background-color: transparent !important;
         }
 
-        /* Floating Background Styles - REMOVED FIXED POSITION AND VW/VH */
-        /* It is now absolutely positioned inside the fixed #game-view element */
+        /* Floating Background Styles - MOVED OUTSIDE #game-view */
+        /* It is now absolutely positioned inside the fixed #full-screen-floating element */
         .floating-image {
             position: absolute;
             bottom: -150px; /* Start far below the screen */
@@ -66,17 +68,43 @@
             border: 6px solid #111827;
             /* Adjusted shadow for clear card */
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-            transition: transform 0.1s, border-color 0.2s, box-shadow 0.2s; /* Added transitions */
+            /* CRUCIAL FOR ANIMATION: Add a global transition for all properties */
+            transition: all 0.5s ease-in-out, transform 0.1s, border-color 0.2s, box-shadow 0.2s; 
             z-index: 10; /* Ensure the game card is on top of the floating layer */
             position: relative;
             /* Added a subtle blur effect to help readability over background images */
             backdrop-filter: blur(5px);
         }
+
+        /* NEW: Class for the animation target state (fixed position) */
+        .game-card.transforming {
+            position: fixed !important; /* Take it out of flow for fixed positioning */
+            margin: 0 !important; /* Remove any margins */
+            z-index: 55; /* Above game view content (z-40) */
+            border-radius: 0.75rem; /* Match game-box rounded-xl */
+            opacity: 1; 
+        }
+
+        /* NEW: Hide the contents of the lobby card during transformation */
+        .game-card.transforming > :not(.theme-toggle-button):not(.color-picker-panel) {
+            opacity: 0;
+            transition: opacity 0.2s; /* Contents disappear quickly */
+        }
         
-        /* NEW: Outline for the Game Box */
+        /* NEW: Outline for the Game Box (The Iframe Monitor Frame) */
+        /* FIX: Made background transparent so floating images can be seen through it. */
         #game-box {
-            /* Use the same border as the game-card for light mode */
-            border: 6px solid #111827; /* Black Border */
+            /* Use a thicker, distinct border for the monitor effect */
+            border: 12px solid #111827; /* Thick Black Border */
+            background-color: transparent !important; 
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5); /* Strong shadow for depth */
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        /* Style for Fullscreen mode to remove the border and round corners */
+        #game-box:fullscreen {
+            border: none !important;
+            border-radius: 0 !important;
+            box-shadow: none !important;
         }
 
 
@@ -189,9 +217,12 @@
             box-shadow: 0 5px 15px rgba(236, 254, 255, 0.1); /* Subtle white-ish shadow */
         }
         
-        /* NEW: Dark Mode Game Box Outline */
+        /* Dark Mode Game Box Outline */
+        /* FIX: Made background transparent so floating images can be seen through it. */
         html.dark #game-box {
-            border-color: #ECFEFF; /* Pale Blue border */
+            border: 12px solid #ECFEFF; /* Thick Pale Blue border */
+            background-color: transparent !important;
+            box-shadow: 0 10px 30px rgba(236, 254, 255, 0.1);
         }
         
         /* Dark Mode Game Link Card */
@@ -242,7 +273,7 @@
             position: fixed;
             top: 20px;
             left: 20px;
-            z-index: 60; /* Higher than music player */
+            z-index: 60; /* Higher than game view (z-40) and music player (z-50) */
         }
         @media (max-width: 640px) {
             .theme-toggle-button {
@@ -257,7 +288,7 @@
             position: fixed;
             top: 80px;
             left: 20px;
-            z-index: 60;
+            z-index: 60; /* Higher than game view (z-40) and music player (z-50) */
             background-color: #ECFEFF; /* Match light theme bg */
             border: 4px solid #111827; /* Match music player border */
             transition: background-color 0.2s, border-color 0.2s;
@@ -295,8 +326,69 @@
         /* Hide on mobile, it's too much */
         @media (max-width: 640px) {
             .color-picker-panel {
-                display: none;
+                bottom: 80px; /* Place above the theme toggle */
+                top: auto; /* Reset top */
+                left: 20px;
             }
+        }
+        /* --- END OF MOBILE ADJUSTMENT FOR CONTROLS --- */
+        
+        /* --- GAME VIEW LAYOUT (FIXED FOR HEIGHT) --- */
+        #game-view {
+            /* FIX: Make it a flex column container centered on the whole screen */
+            padding-top: 0;
+            padding-bottom: 0;
+            align-items: center; /* Center horizontally */
+            justify-content: center; /* Center vertically */
+            flex-direction: column; /* Stack controls and game box vertically */
+            position: fixed; 
+            height: 100vh; /* Ensure it takes full viewport height for centering */
+            max-height: 100vh;
+            overflow: hidden; /* Prevent scroll */
+        }
+        
+        #game-controls {
+            /* Now part of the flex flow, but still visually positioned with wrapper/margin */
+            position: static; /* Revert from absolute */
+            top: auto; /* Reset top */
+            width: 100%;
+            margin-bottom: 0.5rem; /* Add a small space below controls */
+        }
+
+        /* NEW: Utility class to match the width of the game-box in the center (max-w-4xl) */
+        .game-controls-wrapper {
+            max-width: 4xl; /* CHANGED from 6xl to 4xl for a more compact design */
+            width: 100%;
+            margin-left: auto;
+            margin-right: auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        #current-game-title {
+            /* Now a separate block for proper centering above the controls wrapper */
+            margin-bottom: 0.5rem; /* Space below title */
+            z-index: 1; /* Keep it on top */
+            position: relative; /* Needs to be relative to the flow */
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        /* The game box is now positioned below the controls */
+        #game-box {
+            margin-top: 0; /* Remove old margin-top */
+            z-index: 0;
+            /* FIX: Constrain height to viewport minus the title, control bar, and padding (approx 120px total) */
+            max-height: calc(100vh - 120px); 
+            /* NEW: Set max-width to scale proportionally to max-height (16:9 ratio) to prevent vertical overflow */
+            max-width: calc((100vh - 120px) * 16 / 9);
+            width: 90vw; /* General width constraint so it doesn't get too small on wide screens */
+        }
+        
+        /* Ensure iframe is flexible within its new constrained container */
+        #game-iframe {
+            min-height: 0;
         }
         
     </style>
@@ -304,6 +396,9 @@
 </head>
 
 <body class="p-4">
+
+    <div id="full-screen-floating" class="fixed inset-0 w-full h-full z-0 overflow-hidden">
+        </div>
 
     <button id="theme-toggle" class="theme-toggle-button p-2 rounded-full text-gray-800 bg-white border-2 border-gray-800 shadow-md dark:bg-gray-700 dark:border-cyan-100 dark:text-cyan-100">
         <svg id="theme-toggle-light-icon" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -512,20 +607,20 @@
                 <h3 class="text-xl font-bold mb-0 text-[#111827] dark:text-cyan-100">Sushiria</h3>
                 </a>
 
-            <a href="Papa's Taco Mia.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="Papa's Taco Mia cooking">
-                <img src="Tacomia.png" alt="Papa's Taco Mia Icon" class="game-icon">
+            <a href="Papa's Taco Mia.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="Papa's Taco Mia cooking taco">
+                <img src="Taco Mia.png" alt="Papa's Taco Mia Icon" class="game-icon">
                 <h3 class="text-xl font-bold mb-0 text-[#111827] dark:text-cyan-100">Taco Mia</h3>
                 </a>
 
-            <a href="Papa's Wingeria.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="Papa's Wingeria cooking wings">
+            <a href="Papa's Wingeria.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="Papa's Wingeria cooking chicken wings">
                 <img src="Wingeria.png" alt="Papa's Wingeria Icon" class="game-icon">
                 <h3 class="text-xl font-bold mb-0 text-[#111827] dark:text-cyan-100">Wingeria</h3>
-                FINALLY ITS OVER OH MY GOD</a>
+                </a>
 
             <a href="Red Ball 4.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="Red Ball 4 platformer">
                 <img src="Red Ball.png" alt="Red Ball 4 Icon" class="game-icon">
                 <h3 class="text-xl font-bold mb-0 text-[#111827] dark:text-cyan-100">Red Ball 4A</h3>
-                I 100%ed this game it was cool</a>
+                This level was pretty easy</a>
 
             <a href="Red Ball 4 Vol. 2.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="Red Ball 4 Vol 2 platformer">
                 <img src="Red Ball.png" alt="Red Ball 4 Vol. 2 Icon" class="game-icon">
@@ -553,34 +648,9 @@
                 I died because i shat myself 10/10</a>
 
             <a href="Kindergarten.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="Kindergarten horror adventure">
-                <img src="NUGGET.png" alt="Kindergarten Icon" class="game-icon">
+                <img src="Kinder.png" alt="Kindergarten Icon" class="game-icon">
                 <h3 class="text-xl font-bold mb-0 text-[#111827] dark:text-cyan-100">Kindergarten</h3>
-                ah kindergarten, just how i remembered it!</a>
-
-            <a href="Kindergarten 2.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="Kindergarten 2 horror adventure">
-                <img src="NUGGET3.png" alt="Kindergarten 2 Icon" class="game-icon">
-                <h3 class="text-xl font-bold mb-0 text-[#111827] dark:text-cyan-100">Kindergarten 2</h3>
-                ah kindergarten again, just how i remembered it twice!</a>
-
-            <a href="Kindergarten 3.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="Kindergarten 3 horror adventure">
-                <img src="NUGGET2.png" alt="Kindergarten 3 Icon" class="game-icon">
-                <h3 class="text-xl font-bold mb-0 text-[#111827] dark:text-cyan-100">Kindergarten 3</h3>
-                ah kindergarteners, yum!</a>
-
-            <a href="Bad Monday Simulator.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="Monday Sim Garfield horror">
-                <img src="Nermal.gif" alt="Bad Monday Simulator Icon" class="game-icon">
-                <h3 class="text-xl font-bold mb-0 text-[#111827] dark:text-cyan-100">Bad Monday Sim</h3>
-                i eat john, its what i do!</a>
-
-            <a href="Getting Over It with Bennett Foddy(1).html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="Getting Over It rage physics">
-                <img src="gettingoverit.png" alt="Getting Over It Icon" class="game-icon">
-                <h3 class="text-xl font-bold mb-0 text-[#111827] dark:text-cyan-100">Getting Over it</h3>
-                ah getting over its, yum!</a>
-
-            <a href="Flappy Bird.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="Flappy Bird">
-                <img src="flappybird.png" alt="Flappy Bird Icon" class="game-icon">
-                <h3 class="text-xl font-bold mb-0 text-[#111827] dark:text-cyan-100">Flappy Bird</h3>
-                ah repeating myself to be funny, yum!</a>
+                Gotta kill lily so she dont blow up the world!</a>
 
             <a href="Run 3.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="Run 3 dash space">
                 <img src="run.gif" alt="Run 3 Icon" class="game-icon">
@@ -592,7 +662,6 @@
                 <h3 class="text-xl font-bold mb-0 text-[#111827] dark:text-cyan-100">World's Hardest Game</h3>
                 Yea its hard, but im harder!</a>
 
-            
             <a href="Burrito Bison.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="Burrito Bison launch upgrade">
                 <img src="Burrito.png" alt="Burrito Bison Icon" class="game-icon">
                 <h3 class="text-xl font-bold mb-0 text-[#111827] dark:text-cyan-100">Burrito Bison</h3>
@@ -606,34 +675,9 @@
             <a href="Monkey Mart.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="Monkey Mart idle management">
                 <img src="monkey.png" alt="Monkey Mart Icon" class="game-icon">
                 <h3 class="text-xl font-bold mb-0 text-[#111827] dark:text-cyan-100">Monkey Mart</h3>
-                oooo oooo aaaa aaaa</a>
+                Monke!</a>
 
-            <a href="Geometry Dash Lite.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="Geometry Dash GD rhythm">
-                <img src="Geometry.png" alt="Geometry Dash Icon" class="game-icon">
-                <h3 class="text-xl font-bold mb-0 text-[#111827] dark:text-cyan-100">Geometry Dash</h3>
-                look guys! its geometry dash NOT ON SCRATCH! i know, amazing right?</a>
-
-            <a href="Duck Life 5.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="Duck Life racing training">
-                <img src="Duck Life.png" alt="Duck Life 5 Icon" class="game-icon">
-                <h3 class="text-xl font-bold mb-0 text-[#111827] dark:text-cyan-100">Duck Life 5</h3>
-                i always confused this game with "can your pet"</a>
-
-            <a href="Drive Mad.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="Drive Mad driving physics">
-                <img src="Drive.png" alt="Drive Mad Icon" class="game-icon">
-                <h3 class="text-xl font-bold mb-0 text-[#111827] dark:text-cyan-100">Drive Mad</h3>
-                Another game i used to play on fancade, im pretty sure i made a bunch of custom levels on there about this game</a>
-
-            <a href="myTeardrop.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="myTeardrop bfdi">
-                <img src="tear.gif" alt="myTeardrop Icon" class="game-icon">
-                <h3 class="text-xl font-bold mb-0 text-[#111827] dark:text-cyan-100">myTeardrop</h3>
-                bfdi is pretty cool</a>
-
-            <a href="Buckshot Roulette.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="Buckshot Roulette horror card">
-                <img src="buckshot.gif" alt="Buckshot Roulette Icon" class="game-icon">
-                <h3 class="text-xl font-bold mb-0 text-[#111827] dark:text-cyan-100">Buckshot Roulette</h3>
-                The last game before i update the gamesite, and im not sure if it even works!!!! (it does yay ;D)</a>
-
-            <a href="https://deltacook.vercel.app/" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="Deltarune">
+            <a href="Deltarune.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="Deltarune">
                 <img src="deltarune.png" alt="deltarune icon" class="game-icon">
                 <h3 class="text-xl font-bold mb-0 text-[#111827] dark:text-cyan-100">Deltarune</h3>
                 gonna climb this fuckin tower</a>
@@ -646,142 +690,45 @@
             <a href="8 Ball Classic.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="8 ball classic">
                 <img src="8.gif" alt="8 ball icon" class="game-icon">
                 <h3 class="text-xl font-bold mb-0 text-[#111827] dark:text-cyan-100">8 Ball Classic</h3>
-               lets play 8 ball!</a>
+                lets play 8 ball!</a>
 
             <a href="Amanda The Adventurer.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="Amanda The Adventurer">
                 <img src="woolu.gif" alt="amanda icon" class="game-icon">
                 <h3 class="text-xl font-bold mb-0 text-[#111827] dark:text-cyan-100">Amanda The Adventurer</h3>
-                baaaaaaah</a>            <a href="Angry Birds.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="angry birds">
+                baaaaaaah</a>
+
+            <a href="Angry Birds.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="angry birds">
                 <img src="angry-birds.gif" alt="angry icon" class="game-icon">
                 <h3 class="text-xl font-bold mb-0 text-[#111827] dark:text-cyan-100">Angry Birds</h3>
                 naaa hee haw</a>
 
-            <a href="Basket Random.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="basket random">
-                <img src="basket.png" alt="basket random icon" class="game-icon">
+            <a href="Basket Random.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="basket random sports">
+                <img src="basket.png" alt="basket icon" class="game-icon">
                 <h3 class="text-xl font-bold mb-0 text-[#111827] dark:text-cyan-100">Basket Random</h3>
-                i caved in have your stupid basket game</a>
+                it says random so its random</a>
 
-            <a href="Binding Of Issac_ Wrath of the Lamb.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="binding of issac">
-                <img src="bind.gif" alt="binding of issac icon" class="game-icon">
-                <h3 class="text-xl font-bold mb-0 text-[#111827] dark:text-cyan-100">Binding of Issac</h3>
-                we love you issac</a>
+            <a href="Dr Driving 4.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="dr driving car simulator">
+                <img src="dr.png" alt="Dr driving icon" class="game-icon">
+                <h3 class="text-xl font-bold mb-0 text-[#111827] dark:text-cyan-100">Dr Driving 4</h3>
+                its a good game</a>
 
-            <a href="Bloxorz.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="bloxorz">
-                <img src="bloxorz.png" alt="bloxorz icon" class="game-icon">
-                <h3 class="text-xl font-bold mb-0 text-[#111827] dark:text-cyan-100">Bloxorz</h3>
-                i hate and also love this game</a>            <a href=" clundertale.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="placeholder new game">
-                <img src=" undertale-pixel-art.gif" alt="placeholder icon" class="game-icon">
-                <h3 class="text-xl font-bold mb-0 text-[#111827] dark:text-cyan-100">Undertale</h3>
-                OKAY... I GUESS I'LL REPEAT MYSELF... RED TILES ARE IMPASSABLE. YELLOW TILES ARE ELECTRIC AND DANGEROUS. BLUE TILES ARE WATER TILES. GREEN TILES ARE WATER TILES. ORANGE TILES ARE ORANGE SCENTED. IF YOU STEP ON ORANGE, DON'T STEP ON GREEN. BROWN TILES ARE... WAIT!!! THERE ARE NO BROWN TILES... PURPLE TILES SMELL LIKE LEMONS... WHY DON'T THE YELLOW ONES SMELL LEMONY? UMM... WAIT!! DID I MIX UP GREEN AND BLUE!? THE BLUE ONES ARE WATER ONES! PINK TILES... I DON'T... REMEMBER??? WAIT!!! THOSE ONES DON'T DO ANYTHING. OKAY! DO YOU UNDERSTAND BETTER NOW!? </a>
+            <a href="Dr Parking 4.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="dr parking car simulator">
+                <img src="drp.png" alt="Dr parking icon" class="game-icon">
+                <h3 class="text-xl font-bold mb-0 text-[#111827] dark:text-cyan-100">Dr Parking 4</h3>
+                nah i dont like parking games</a>
 
-            <a href="clpokemonemerald.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="placeholder new game">
-                <img src="emerald.jpg" alt="placeholder icon" class="game-icon">
-                <h3 class="text-xl font-bold mb-0 text-[#111827] dark:text-cyan-100">Pokemon Emerald</h3>, 
-                Sunflora, Igglybuff, Piloswine, Slugma,Crobat, Politoed, Noctowl, Houndour, Heracross, Natu, Tyrogue, Ariados, Lugia, Steelix, Phanpy, Ampharos, Sudowoodo, Corsola, Teddiursa, Sneasel, Forretress, Mantine, Pichu, Larvitar, Hoothoot, Miltank, Totodile, Gligar, Lanturn, Skarmory, Spinarak, Tyranitar, Chikorita, Dunsparce, Aipom, Pupitar, Porygon2, Cyndaquil, Elekid, Raikou, Wobbuff_ (text to long to finish)</a>
-            
-            <a href="Amaze.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="placeholder new game">
-                <img src="amaze.png" alt="placeholder icon" class="game-icon">
-                <h3 class="text-xl font-bold mb-0 text-[#111827] dark:text-cyan-100">AMAZE!</h3>
-                uhhhhhh</a>
+            <a href="Moto X3M Pool Party.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="moto x3m pool party dirtbike">
+                <img src="pool.png" alt="moto x3m icon" class="game-icon">
+                <h3 class="text-xl font-bold mb-0 text-[#111827] dark:text-cyan-100">Moto X3M Pool Party</h3>
+                its the best moto x3m</a>
 
-            <a href="=Angry Birds.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="placeholder new game">
-                <img src="red.png" alt="placeholder icon" class="game-icon">
-                <h3 class="text-xl font-bold mb-0 text-[#111827] dark:text-cyan-100">Angry Birds</h3>
-                idk what to clear up the space with for these games ¯\_ (ᵕ—ᴗ—)_/¯</a>            <a href="Bank Robbery 2.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="placeholder new game">
-                <img src="bank.jpg" alt="placeholder icon" class="game-icon">
-                <h3 class="text-xl font-bold mb-0 text-[#111827] dark:text-cyan-100">Bank Robbery</h3>
-                im evil and stealing money mwahahahah</a>
+            <a href="Super Fighters 2.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="super fighters 2 fighting">
+                <img src="super.png" alt="super fighters 2 icon" class="game-icon">
+                <h3 class="text-xl font-bold mb-0 text-[#111827] dark:text-cyan-100">Super Fighters 2</h3>
+                you and your friend can fight</a>
 
-            <a href="Dadish.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="placeholder new game">
-                <img src="dadish.jpeg" alt="placeholder icon" class="game-icon">
-                <h3 class="text-xl font-bold mb-0 text-[#111827] dark:text-cyan-100">Dadish</h3>
-                My radish is a dad to billions</a>
-
-            <a href="Dadish.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="placeholder new game">
-                <img src="dadish3d.jpeg" alt="placeholder icon" class="game-icon">
-                <h3 class="text-xl font-bold mb-0 text-[#111827] dark:text-cyan-100">Dadish 3d</h3>
-                My radish 3d is a dad 3d to 3d billions</a>
-
-            <a href="Escape Road.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="placeholder new game">
-                <img src="road.png" alt="placeholder icon" class="game-icon">
-                <h3 class="text-xl font-bold mb-0 text-[#111827] dark:text-cyan-100">Escape Road</h3>
-                i used to clown this but its actually fire</a>            <a href="Basket Battle.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="placeholder new game">
-                <img src="basket.jpeg" alt="placeholder icon" class="game-icon">
-                <h3 class="text-xl font-bold mb-0 text-[#111827] dark:text-cyan-100">Basket battle</h3>
-                The only goated basket ball game not sorry brah</a>
-
-            <a href="Bouncemasters.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="placeholder new game">
-                <img src="ilovebigbouncyballsonmytongue.jpeg" alt="placeholder icon" class="game-icon">
-                <h3 class="text-xl font-bold mb-0 text-[#111827] dark:text-cyan-100">Bouncemasters</h3>
-                burrito bison and this are almost the same </a>
-
-            <a href="Cluster Rush.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="placeholder new game">
-                <img src="cluster.jpeg" alt="placeholder icon" class="game-icon">
-                <h3 class="text-xl font-bold mb-0 text-[#111827] dark:text-cyan-100">Cluster Rush</h3>
-                basic ass game</a>
-
-            <a href="Cookie Clicker.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="placeholder new game">
-                <img src="cookie.jpeg" alt="placeholder icon" class="game-icon">
-                <h3 class="text-xl font-bold mb-0 text-[#111827] dark:text-cyan-100">Cookie Clicker</h3>
-                the classic</a>    
-            <a href="Final Earth 2.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="placeholder new game">
-                <img src="final.jpeg" alt="placeholder icon" class="game-icon">
-                <h3 class="text-xl font-bold mb-0 text-[#111827] dark:text-cyan-100">Final Earth 2</h3>
-                Dont remember adding this game?????</a>
-
-            <a href="Five Nights At Freddy's.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="placeholder new game">
-                <img src="fnaf.png" alt="placeholder icon" class="game-icon">
-                <h3 class="text-xl font-bold mb-0 text-[#1V] dark:text-cyan-100">FNAF</h3>
-                I AM NOT ADDING EVERY FNAF GAME</a>
-
-            <a href="Granny 3.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="placeholder new game">
-                <img src="granny3.png" alt="placeholder icon" class="game-icon">
-                <h3 class="text-xl font-bold mb-0 text-[#111827] dark:text-cyan-100">Granny 3</h3>
-                the one with slendrina</a>
-            <a href="Growden.io.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="placeholder new game">
-                <img src="garden.jpeg" alt="placeholder icon" class="game-icon">
-                <h3 class="text-xl font-bold mb-0 text-[#111827] dark:text-cyan-100">Grow A Garden</h3>
-                garden growers 9000</a>            
-            <a href="Karlson.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="placeholder new game">
-                <img src="Karlson.jpeg" alt="placeholder icon" class="game-icon">
-                <h3 class="text-xl font-bold mb-0 text-[#111827] dark:text-cyan-100">Karlson</h3>
-                cuinn and nathan DO YOUR WORK NOW!!!!!!!</a>
-
-            <a href="Minecraft 1.8.8.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="placeholder new game">
-                <img src="mine.jpeg" alt="placeholder icon" class="game-icon">
-                <h3 class="text-xl font-bold mb-0 text-[#111827] dark:text-cyan-100">Minecraft</h3>
-                so like, incase you dont know about this game, you have to like, mine, and like, craft, so like.. yeah.</a>
-
-            <a href="Plants vs Zombies.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="placeholder new game">
-                <img src="pvz.png" alt="placeholder icon" class="game-icon">
-                <h3 class="text-xl font-bold mb-0 text-[#111827] dark:text-cyan-100">PVZ Flash</h3>
-                only day levels sadly, dont worry though ill add DS PVZ soon!</a>
-
-            <a href="Monster Tracks.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="placeholder new game">
-                <img src="monster.jpeg" alt="placeholder icon" class="game-icon">
-                <h3 class="text-xl font-bold mb-0 text-[#111827] dark:text-cyan-100">Monster Tracks</h3>
-                It's endless drive mad!!!</a>            
-            <a href="Nazi Zombies_ Portable.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="placeholder new game">
-                <img src="nazi.jpeg" alt="placeholder icon" class="game-icon">
-                <h3 class="text-xl font-bold mb-0 text-[#111827] dark:text-cyan-100">Nazi Zombies; Portable</h3>
-                You can kill green adolf hitler??? 10/10</a>
-
-            <a href="Time Shooter 1.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="placeholder new game">
-                <img src="crappy.png" alt="placeholder icon" class="game-icon">
-                <h3 class="text-xl font-bold mb-0 text-[#111827] dark:text-cyan-100">Time Shooter</h3>
-                Here, diego... >:(</a>
-
-            <a href="Time Shooter 2.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="placeholder new game">
-                <img src="time.png" alt="placeholder icon" class="game-icon">
-                <h3 class="text-xl font-bold mb-0 text-[#111827] dark:text-cyan-100">Time Shooter 2</h3>
-                </a>
-
-            <a href="Time Shooter 3_ SWAT.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="placeholder new game">
-                <img src="time2.png" alt="placeholder icon" class="game-icon">
-                <h3 class="text-xl font-bold mb-0 text-[#111827] dark:text-cyan-100">Time Shooter 3</h3>
-                </a>            
-            <a href="https://cacyohoho.vercel.app/" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="placeholder new game">
-                <img src="android-chrome-192x192.png" alt="placeholder icon" class="game-icon">
+            <a href="yohoho.io.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="yohoho.io multiplayer">
+                <img src="yo.png" alt="yohoho.io icon" class="game-icon">
                 <h3 class="text-xl font-bold mb-0 text-[#111827] dark:text-cyan-100">yohoho.io</h3>
                 IT WAS SO ANNOYING GETTING ALL THE FILES BUT I DID IT!!!!!!!!</a>
 
@@ -792,14 +739,6 @@
 
             <a href="gamesite.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="placeholder new game">
                 <img src="cacy.png" alt="placeholder icon" class="game-icon">
-                <h3 class="text-xl font-bold mb-0 text-[#1E] dark:text-cyan-100">New Game</h3>
-                This is a placeholder for a soon to be added game!</a>
-
-            <a href="gamesite.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="placeholder new game">
-                <img src="cacy.png" alt="placeholder icon" class="game-icon">
-                <h3 class="text-xl font-bold mb-0 text-[#111827] dark:text-cyan-100">New Game</h3>
-                This is a placeholder for a soon to be added game!</a>            <a href="gamesite.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="placeholder new game">
-                <img src="cacy.png" alt="placeholder icon" class="game-icon">
                 <h3 class="text-xl font-bold mb-0 text-[#111827] dark:text-cyan-100">New Game</h3>
                 This is a placeholder for a soon to be added game!</a>
 
@@ -814,9 +753,6 @@
                 This is a placeholder for a soon to be added game!</a>
 
             <a href="gamesite.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="placeholder new game">
-                <img src="cacy.png" alt="placeholder icon" class="game-icon">
-                <h3 class="text-xl font-bold mb-0 text-[#111827] dark:text-cyan-100">New Game</h3>
-                This is a placeholder for a soon to be added game!</a>            <a href="gamesite.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="placeholder new game">
                 <img src="cacy.png" alt="placeholder icon" class="game-icon">
                 <h3 class="text-xl font-bold mb-0 text-[#111827] dark:text-cyan-100">New Game</h3>
                 This is a placeholder for a soon to be added game!</a>
@@ -834,16 +770,8 @@
             <a href="gamesite.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="placeholder new game">
                 <img src="cacy.png" alt="placeholder icon" class="game-icon">
                 <h3 class="text-xl font-bold mb-0 text-[#111827] dark:text-cyan-100">New Game</h3>
-                This is a placeholder for a soon to be added game!</a>            <a href="gamesite.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="placeholder new game">
-                <img src="cacy.png" alt="placeholder icon" class="game-icon">
-                <h3 class="text-xl font-bold mb-0 text-[#111827] dark:text-cyan-100">New Game</h3>
                 This is a placeholder for a soon to be added game!</a>
-
-            <a href="gamesite.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="placeholder new game">
-                <img src="cacy.png" alt="placeholder icon" class="game-icon">
-                <h3 class="text-xl font-bold mb-0 text-[#111827] dark:text-cyan-100">New Game</h3>
-                This is a placeholder for a soon to be added game!</a>
-
+            
             <a href="gamesite.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="placeholder new game">
                 <img src="cacy.png" alt="placeholder icon" class="game-icon">
                 <h3 class="text-xl font-bold mb-0 text-[#111827] dark:text-cyan-100">New Game</h3>
@@ -856,47 +784,51 @@
                 
         </div>
     </div>
-    
+
+
     <div id="game-view" class="hidden fixed inset-0 w-full h-full z-40 flex items-center justify-center p-4">
         
-        <div id="full-screen-floating" class="absolute inset-0 w-full h-full z-30 pointer-events-none overflow-hidden">
+        <h2 id="current-game-title" class="text-xl font-extrabold p-2 rounded-lg bg-white dark:bg-gray-700 shadow-lg border-2 border-[#111827] dark:border-cyan-100 max-w-[50%] truncate text-center transition-colors mb-2"></h2>
+
+        <div id="game-controls" class="w-full mb-1">
+            <div class="game-controls-wrapper max-w-4xl px-4 sm:px-6 md:px-8">
+                
+                <div class="flex space-x-2">
+                    <button id="back-button" title="Back to Main Menu" class="back-button flex items-center p-2 rounded-lg text-white font-bold shadow-lg">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                        </svg>
+                        <span class="ml-2 sm:inline">Back</span>
+                    </button>
+                    
+                    <button id="reload-button" title="Reload Game" class="back-button p-2 rounded-lg text-white font-bold shadow-lg hidden sm:flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                        </svg>
+                        <span class="ml-2 hidden sm:inline">Reload</span>
+                    </button>
+                </div>
+                
+                <div class="flex space-x-2">
+                    <a id="download-button" href="#" title="Download Game (Not Functional)" class="back-button flex items-center p-2 rounded-lg text-white font-bold shadow-lg hidden sm:flex" download target="_blank">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                        </svg>
+                        <span class="ml-2 hidden sm:inline">Download</span>
+                    </a>
+                    
+                    <button id="fullscreen-button" title="Enter Fullscreen" class="back-button p-2 rounded-lg text-white font-bold shadow-lg flex items-center">
+                        <svg id="fullscreen-icon" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path id="maximize-path" stroke-linecap="round" stroke-linejoin="round" d="M4 8V4m0 0h4M4 4l5 5m11-5v4m0 0h-4m4-4l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5v-4m0 4h-4m4 0l-5-5" />
+                        </svg>
+                        <span class="ml-2 hidden sm:inline">Fullscreen</span>
+                    </button>
+                </div>
             </div>
+        </div>
 
-        <div id="game-wrapper" class="relative w-full max-w-6xl max-h-full h-full flex items-center justify-center z-40"> 
-
-            <div id="game-controls-container" class="absolute -top-1 left-0 z-50 flex space-x-3">
-                
-                <button id="back-to-menu" class="back-button p-3 rounded-lg text-white text-xl shadow-lg flex items-center space-x-2" title="Back to Main Menu">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-                    </svg>
-                    <span class="hidden sm:inline">Back to Menu</span>
-                </button>
-                
-                <button id="reload-game-button" class="back-button p-3 rounded-lg text-white text-xl shadow-lg flex items-center justify-center" title="Reload Game">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h5M4 4L9 9m9 4a8 8 0 11-16 0 8 8 0 0116 0z" />
-                    </svg>
-                </button>
-                
-                <button id="download-game-button" class="back-button p-3 rounded-lg text-white text-xl shadow-lg flex items-center justify-center" title="Download Game File">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                    </svg>
-                </button>
-                
-                <button id="fullscreen-button" class="back-button p-3 rounded-lg text-white text-xl shadow-lg flex items-center justify-center" title="Enter Fullscreen">
-                    <svg id="fullscreen-icon" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path id="maximize-path" stroke-linecap="round" stroke-linejoin="round" d="M4 8V4m0 0h4M4 4l5 5m11-5v4m0 0h-4m4-4l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5v-4m0 4h-4m4 0l-5-5" />
-                    </svg>
-                </button>
-
-            </div>
-            
-            <div id="game-box" class="w-full max-h-full aspect-video bg-white dark:bg-gray-800 rounded-xl shadow-2xl overflow-hidden relative mt-12"> 
-                 <iframe id="game-iframe" src="" frameborder="0" class="w-full h-full" allow="accelerometer; gyroscope; fullscreen"></iframe>
-            </div>
-
+        <div id="game-box" class="w-full max-w-4xl aspect-video rounded-xl overflow-hidden relative">
+            <iframe id="game-iframe" src="" frameborder="0" class="w-full h-full" allow="accelerometer; gyroscope; fullscreen"></iframe>
         </div>
     </div>
 
@@ -922,6 +854,7 @@
                 lightIcon.classList.add('hidden');
                 darkIcon.classList.remove('hidden');
                 localStorage.setItem('theme', 'dark');
+
                 // Update pickers *only if* no custom color is set
                 if (!savedBg) bgColorPicker.value = '#111827';
                 if (!savedText) textColorPicker.value = '#D1D5DB';
@@ -930,6 +863,7 @@
                 lightIcon.classList.remove('hidden');
                 darkIcon.classList.add('hidden');
                 localStorage.setItem('theme', 'light');
+
                 // Update pickers *only if* no custom color is set
                 if (!savedBg) bgColorPicker.value = '#ECFEFF';
                 if (!savedText) textColorPicker.value = '#374151';
@@ -938,70 +872,82 @@
 
         // Toggle theme on button click
         themeToggleBtn.addEventListener('click', () => {
-            const isDarkMode = document.documentElement.classList.contains('dark');
-            setTheme(!isDarkMode);
+            const isDark = document.documentElement.classList.contains('dark');
+            setTheme(!isDark);
         });
 
-        // Check for saved theme in localStorage or system preference on load
-        (function onPageLoad() {
-            // 1. Set Light/Dark Theme
-            const savedTheme = localStorage.getItem('theme');
-            const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        // Initial theme load (based on localStorage or system preference)
+        const savedTheme = localStorage.getItem('theme');
+        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
 
-            if (savedTheme === 'dark' || (!savedTheme && systemPrefersDark)) {
-                setTheme(true);
-            } else {
-                setTheme(false); // Default to light
-            }
-            
-            // 2. Load Custom Colors (which override theme if they exist)
-            const savedBg = localStorage.getItem('customBgColor');
-            const savedText = localStorage.getItem('customTextColor');
-            
-            if (savedBg) {
-                document.body.style.backgroundColor = savedBg;
-                bgColorPicker.value = savedBg;
-            }
-            if (savedText) {
-                document.body.style.color = savedText;
-                textColorPicker.value = savedText;
-            }
-        })();
+        if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
+            setTheme(true);
+        } else {
+            setTheme(false);
+        }
 
-        // --- Event Listeners for Custom Colors ---
+        // --- 0.6 Custom Color Logic ---
 
+        function applyCustomColors(bg, text) {
+            document.body.style.setProperty('background-color', bg);
+            document.body.style.setProperty('color', text);
+            document.querySelector('#music-player p').style.setProperty('color', text);
+            document.querySelector('.music-player').style.setProperty('background-color', bg);
+            document.querySelector('.color-picker-panel').style.setProperty('background-color', bg);
+        }
+
+        // Load saved custom colors
+        const savedBg = localStorage.getItem('customBgColor');
+        const savedText = localStorage.getItem('customTextColor');
+        if (savedBg && savedText) {
+            applyCustomColors(savedBg, savedText);
+            bgColorPicker.value = savedBg;
+            textColorPicker.value = savedText;
+        }
+
+        // Event listeners for color pickers
         bgColorPicker.addEventListener('input', (e) => {
-            const newBg = e.target.value;
-            document.body.style.backgroundColor = newBg;
-            localStorage.setItem('customBgColor', newBg);
+            const color = e.target.value;
+            document.body.style.setProperty('background-color', color);
+            document.querySelector('.music-player').style.setProperty('background-color', color);
+            document.querySelector('.color-picker-panel').style.setProperty('background-color', color);
+            localStorage.setItem('customBgColor', color);
         });
 
         textColorPicker.addEventListener('input', (e) => {
-            const newText = e.target.value;
-            document.body.style.color = newText;
-            localStorage.setItem('customTextColor', newText);
+            const color = e.target.value;
+            document.body.style.setProperty('color', color);
+            document.querySelector('#music-player p').style.setProperty('color', color);
+            localStorage.setItem('customTextColor', color);
         });
 
+        // Event listener for reset button
         resetColorsBtn.addEventListener('click', () => {
             localStorage.removeItem('customBgColor');
             localStorage.removeItem('customTextColor');
-            // Remove inline styles
-            document.body.style.backgroundColor = '';
-            document.body.style.color = '';
-            // Re-run the theme logic to apply the correct theme colors
+            // Re-apply theme to reset to default theme colors
             const isDark = document.documentElement.classList.contains('dark');
             setTheme(isDark);
+            
+            // Remove inline styles to rely on CSS rules
+            document.body.style.removeProperty('background-color');
+            document.body.style.removeProperty('color');
+            document.querySelector('#music-player p').style.removeProperty('color');
+            document.querySelector('.music-player').style.removeProperty('background-color');
+            document.querySelector('.color-picker-panel').style.removeProperty('background-color');
         });
 
 
-        // --- 1. Game Search Functionality ---
-        document.getElementById('game-search').addEventListener('input', function() {
-            const searchTerm = this.value.toLowerCase().trim();
-            const gameLinks = document.querySelectorAll('#game-list a');
+        // --- 1. Game Search/Filter ---
+        const searchInput = document.getElementById('game-search');
+        const gameLinks = document.getElementById('game-list').querySelectorAll('a');
 
+        searchInput.addEventListener('input', (e) => {
+            const searchTerm = e.target.value.toLowerCase();
+            
             gameLinks.forEach(link => {
                 const title = link.querySelector('h3').textContent.toLowerCase();
-                // Get the data-title attribute for alternative search terms (e.g., 'Maze' or 'Dash')
+                // data-title attribute is used for more keywords (e.g., 'Slope 2' might have 'dash' or 'Dash')
                 const dataTitle = link.getAttribute('data-title').toLowerCase();
                 const description = link.textContent.toLowerCase();
 
@@ -1014,26 +960,28 @@
             });
         });
 
+
         // --- 2. Floating Background Animation (Image Spawner) ---
-        const floatingContainer = document.getElementById('full-screen-floating');
+        // CHANGED: Container is now a fixed background element in the body
+        const floatingContainer = document.getElementById('full-screen-floating'); 
         const imageSources = [
-            "cacy.png", 
+            "cacy.png",
             "cacy2.png",
-            "cacy3.png", 
+            "cacy3.png",
             "cacy4.png",
             "cacy5.png", // Added another GIF for variety
-            "cacy6.png" // Added another icon
+            "cacy6.png"  // Added another icon
         ];
 
         function createFloatingImage() {
             const img = document.createElement('img');
             img.src = imageSources[Math.floor(Math.random() * imageSources.length)];
             img.className = 'floating-image w-20 h-20 sm:w-28 sm:h-28'; // Tailwind classes for sizing
-            
+
             // Random horizontal start position (0% to 100% width)
             const startX = Math.random() * 100;
             img.style.left = `${startX}vw`;
-            
+
             // Randomize animation duration for a staggered look (10s to 25s)
             const duration = Math.random() * 15 + 10;
             img.style.animationDuration = `${duration}s`;
@@ -1050,9 +998,20 @@
             floatingContainer.appendChild(img);
         }
 
-        // Start spawning images every 1.5 to 3 seconds
-        setInterval(createFloatingImage, Math.random() * 1500 + 1500);
+        // NEW: Function to start the staggered image spawner with slower intervals
+        function startFloatingImageSpawner() {
+            // Randomize the delay for the next image spawn (4 seconds to 8 seconds)
+            const delay = Math.random() * 4000 + 4000; 
+            
+            setTimeout(() => {
+                createFloatingImage();
+                // Call the function again to set up the next random spawn
+                startFloatingImageSpawner(); 
+            }, delay);
+        }
 
+        // Start the whole process
+        startFloatingImageSpawner(); 
 
         // --- 3. Feeline Radio (HTML Audio Player) ---
         const audioPlayer = document.getElementById('audio-player');
@@ -1062,18 +1021,15 @@
         const nextButton = document.getElementById('next-button');
         const prevButton = document.getElementById('prev-button');
         const currentSongTitle = document.getElementById('current-song-title');
-        // NEW: Get the artist element
         const currentSongArtist = document.getElementById('current-song-artist');
 
-        // Array of songs (NOTE: Now includes an 'artist' field)
         const playlist = [
-            { url: "Field of Hopes and Dreams - Toby Fox.mp3", title: "Field of Hopes and Dreams", artist: "Toby Fox" },
-            { url: "Dont Preheat.mp3", title: "Dont preheat your oven cause if you do this song wont play", artist: "ClascyJitto" },
-            { url: "From Now On.mp3", title: "From Now On", artist: "Toby Fox" },
-            { url: "charlie.mp3", title: "Charlie's Here!", artist: "Club Penguin Team" },
-            { url: "Atlas.mp3", title: "Atlas", artist: "Battles" },
-            { url: "music/new_track_5.mp3", title: "Awesome New Track Five", artist: "Cacy" },
-            { url: "music/extra_loop_6.mp3", title: "Another Chill Loop", artist: "Feeline" }
+            { url: "music1.mp3", title: "Feeline Theme", artist: "Unknown" },
+            { url: "music2.mp3", title: "Cacophony", artist: "Qbbic" },
+            { url: "music3.mp3", title: "Gotta Go Fast", artist: "Monke" },
+            { url: "music4.mp3", title: "Game Over", artist: "Error" },
+            { url: "music5.mp3", title: "Press Start", artist: "Feeline Dev" },
+            { url: "music6.mp3", title: "Boss Battle", artist: "The Qottlebup" }
         ];
 
         let currentSongIndex = 0;
@@ -1087,7 +1043,7 @@
             // NEW: Update artist credit
             currentSongArtist.textContent = `Artist: ${song.artist}`; 
             // Preload metadata to ensure the file is ready to play
-            audioPlayer.load(); 
+            audioPlayer.load();
         }
 
         function playSong() {
@@ -1152,53 +1108,113 @@
 
         // Initialize the player
         loadSong(currentSongIndex);
-        
-        // --- 4. IFRAME GAME LOGIC ---
-        const body = document.body; // NEW: Get body reference for blur class
+
+
+        // --- 4. Game Iframe Loader & Controls & ANIMATION LOGIC ---
+
         const mainMenu = document.getElementById('main-menu-view');
         const gameView = document.getElementById('game-view');
-        const gameBox = document.getElementById('game-box'); 
         const gameIframe = document.getElementById('game-iframe');
-        const backButton = document.getElementById('back-to-menu');
-        const gameLinks = document.querySelectorAll('#game-list a');
-        
-        // Controls
-        const reloadButton = document.getElementById('reload-game-button');
-        const downloadButton = document.getElementById('download-game-button');
-        const fullscreenButton = document.getElementById('fullscreen-button'); 
-        const fullscreenIcon = document.getElementById('fullscreen-icon'); 
+        const backButton = document.getElementById('back-button');
+        const reloadButton = document.getElementById('reload-button');
+        const downloadButton = document.getElementById('download-button');
+        const fullscreenButton = document.getElementById('fullscreen-button');
+        const fullscreenIcon = document.getElementById('fullscreen-icon');
+        const currentGameTitle = document.getElementById('current-game-title');
+        const body = document.body;
+        const gameBox = document.getElementById('game-box');
         let currentLoadedGameUrl = '';
 
-        // 4.1 Handle Game Link Click
+        const musicPlayer = document.getElementById('music-player');
+        const themeToggleButton = document.querySelector('.theme-toggle-button');
+        const colorPickerPanel = document.querySelector('.color-picker-panel');
+
+
+        // 4.1 Handle Game Link Clicks
         gameLinks.forEach(link => {
-            link.addEventListener('click', function(event) {
-                event.preventDefault(); // *** Stop default navigation to load in same window ***
-                
-                const gameUrl = this.getAttribute('href');
-                const gameTitle = this.getAttribute('data-title');
-                
-                currentLoadedGameUrl = gameUrl; // Store the URL for reload/download
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
 
-                // Stop music when starting a game
-                pauseSong(); 
+                const gameUrl = link.href;
+                const gameTitle = link.getAttribute('data-title');
                 
-                // Hide the main menu and show the game view (overlay)
-                mainMenu.classList.add('hidden');
-                gameView.classList.remove('hidden');
+                // HIDE the music player, but KEEP the theme toggle and color picker visible
+                musicPlayer.classList.add('hidden');
                 
-                // NEW: Apply blur effect to the lobby background
-                body.classList.add('lobby-blurred');
+                // 1. Ensure game-view is visible (to get correct rects) but hidden from view flow
+                // This is safe because we hide the main menu later and load the iframe later.
+                gameView.classList.remove('hidden'); 
 
-                // Load the game into the iframe
-                gameIframe.src = gameUrl;
+                // Wait for the next frame to ensure layout is calculated before measuring
+                window.requestAnimationFrame(() => {
+                    
+                    // Get the bounding rectangle of the target game-box
+                    const targetRect = gameBox.getBoundingClientRect();
+                    
+                    // Get the initial position and size of the main-menu-view
+                    const initialRect = mainMenu.getBoundingClientRect();
+                    
+                    // Apply initial fixed position to prevent jump
+                    mainMenu.style.position = 'fixed';
+                    mainMenu.style.top = `${initialRect.top}px`;
+                    mainMenu.style.left = `${initialRect.left}px`;
+                    mainMenu.style.width = `${initialRect.width}px`;
+                    mainMenu.style.height = `${initialRect.height}px`;
+                    
+                    // 2. Start the animation
+                    // Use a short delay (e.g., 10ms) to ensure the initial fixed position is applied before transition starts
+                    setTimeout(() => {
+                        mainMenu.classList.add('transforming'); 
+                        
+                        // Apply target styles to trigger the smooth transition
+                        mainMenu.style.top = `${targetRect.top}px`;
+                        mainMenu.style.left = `${targetRect.left}px`;
+                        mainMenu.style.width = `${targetRect.width}px`;
+                        mainMenu.style.height = `${targetRect.height}px`;
+                        
+                        // Apply the border/color change to match game-box style
+                        const isDark = document.documentElement.classList.contains('dark');
+                        const targetBorderColor = isDark ? '#ECFEFF' : '#111827';
+                        const targetBorderWidth = '12px'; // Match game-box border width
+                        
+                        mainMenu.style.borderColor = targetBorderColor;
+                        mainMenu.style.borderWidth = targetBorderWidth;
+
+                    }, 10); 
+                    
+                    // 3. Wait for animation and complete transition
+                    const transitionDuration = 500; // Match the CSS transition duration (0.5s)
+                    setTimeout(() => {
+                        
+                        // Set the iframe source, title, and download link
+                        gameIframe.src = gameUrl;
+                        currentGameTitle.textContent = gameTitle;
+                        downloadButton.href = gameUrl; 
+                        currentLoadedGameUrl = gameUrl;
+
+                        // Hide the main menu
+                        mainMenu.classList.add('hidden');
+                        
+                        // Apply background blur/dimming to body (excluding #game-view)
+                        body.classList.add('game-active-bg');
+
+                        // Reset the Main Menu's state for the next use (important!)
+                        mainMenu.classList.remove('transforming');
+                        mainMenu.style.position = '';
+                        mainMenu.style.top = '';
+                        mainMenu.style.left = '';
+                        mainMenu.style.width = '';
+                        mainMenu.style.height = '';
+                        mainMenu.style.borderColor = ''; // Revert to CSS default
+                        mainMenu.style.borderWidth = ''; // Revert to CSS default
+
+                    }, transitionDuration + 10); // A small buffer (10ms) after transition
+
+                }); // End of requestAnimationFrame
                 
-                // Optional: Update document title for context
+                // Update document title
                 document.title = `${gameTitle} - Feeline`;
                 
-                // Hide music player, and color picker for better focus
-                document.getElementById('music-player').classList.add('hidden');
-                document.querySelector('.theme-toggle-button').classList.add('hidden');
-                document.querySelector('.color-picker-panel').classList.add('hidden');
             });
         });
 
@@ -1209,68 +1225,49 @@
                 document.exitFullscreen();
             }
 
-            // NEW: Remove blur effect from the lobby background
-            body.classList.remove('lobby-blurred');
+            // Remove blur/dimming effect from the body background
+            body.classList.remove('game-active-bg');
             
             // Stop the game and clear the iframe
             gameIframe.src = '';
-            
-            // Clear stored URL
             currentLoadedGameUrl = '';
 
-            // Hide the game view and show the main menu
+            // Hide the game view
             gameView.classList.add('hidden');
-            mainMenu.classList.remove('hidden');
+
+            // Show the main menu
+            mainMenu.classList.remove('hidden'); 
+
+            // Restore music player
+            musicPlayer.classList.remove('hidden');
             
             // Reset document title
             document.title = 'Feeline';
-            
-            // Restore music player, and color picker
-            document.getElementById('music-player').classList.remove('hidden');
-            document.querySelector('.theme-toggle-button').classList.remove('hidden');
-            document.querySelector('.color-picker-panel').classList.remove('hidden');
         });
 
-        // 4.3 Reload Button Logic
+        // 4.3 Handle Reload Button Click
         reloadButton.addEventListener('click', () => {
             if (currentLoadedGameUrl) {
-                gameIframe.src = currentLoadedGameUrl; 
-            }
-        });
-
-        // 4.4 Download Button Logic
-        downloadButton.addEventListener('click', () => {
-            if (currentLoadedGameUrl) {
-                // Create a temporary anchor element
-                const a = document.createElement('a');
-                a.href = currentLoadedGameUrl;
-                
-                // Set the download attribute. Uses the filename from the URL, or a fallback.
-                const urlParts = currentLoadedGameUrl.split('/');
-                const filename = urlParts[urlParts.length - 1] || 'game_file.html';
-                a.download = filename;
-                
-                // Programmatically click the anchor to trigger the download
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
+                // Set the src again to force a reload
+                gameIframe.src = currentLoadedGameUrl;
             }
         });
         
-        // 4.5 Fullscreen Button Logic
+        // 4.4 Handle Fullscreen Button Click
         fullscreenButton.addEventListener('click', () => {
-            // We request fullscreen on the iframe, or the closest element that works.
-            const targetElement = gameIframe; 
-
+            // Target the gameBox element for fullscreen
+            
             if (document.fullscreenElement) {
+                // Exit fullscreen
                 document.exitFullscreen();
             } else {
-                if (targetElement.requestFullscreen) {
-                    targetElement.requestFullscreen();
-                } else if (targetElement.webkitRequestFullscreen) { /* Safari */
-                    targetElement.webkitRequestFullscreen();
-                } else if (targetElement.msRequestFullscreen) { /* IE11 */
-                    targetElement.msRequestFullscreen();
+                // Enter fullscreen
+                if (gameBox.requestFullscreen) {
+                    gameBox.requestFullscreen();
+                } else if (gameBox.webkitRequestFullscreen) { /* Safari */
+                    gameBox.webkitRequestFullscreen();
+                } else if (gameBox.msRequestFullscreen) { /* IE11 */
+                    gameBox.msRequestFullscreen();
                 }
             }
         });
@@ -1279,18 +1276,25 @@
         document.addEventListener('fullscreenchange', () => {
             const isFullscreen = !!document.fullscreenElement;
             
+            // In fullscreen mode, hide the Theme Toggle and Color Picker so they don't cover the game
             if (isFullscreen) {
+                themeToggleButton.classList.add('hidden');
+                colorPickerPanel.classList.add('hidden');
+                
                 // Icon for "Exit Fullscreen" (Shrink/Minimize)
                 fullscreenIcon.innerHTML = `<path id="minimize-path" stroke-linecap="round" stroke-linejoin="round" d="M15 17h5m0 0v5m0-5l-5-5M4 8V4m0 0h4M4 4l5 5m11-5v4m0 0h-4m4-4l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5v-4m0 4h-4m4 0l-5-5" />`;
                 fullscreenButton.title = 'Exit Fullscreen (Press ESC)';
             } else {
+                // Show them again when exiting fullscreen
+                themeToggleButton.classList.remove('hidden');
+                colorPickerPanel.classList.remove('hidden');
+
                 // Icon for "Enter Fullscreen" (Maximize)
                 fullscreenIcon.innerHTML = `<path id="maximize-path" stroke-linecap="round" stroke-linejoin="round" d="M4 8V4m0 0h4M4 4l5 5m11-5v4m0 0h-4m4-4l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5v-4m0 4h-4m4 0l-5-5" />`;
                 fullscreenButton.title = 'Enter Fullscreen';
             }
         });
-
+        
     </script>
 </body>
 </html>
-
