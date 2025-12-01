@@ -4,11 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Secure Access</title>
-    <!-- Load Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- FONT: Using Comic Relief (Google Font) for a playful, handwritten vibe -->
     <link href="https://fonts.googleapis.com/css2?family=Comic+Relief&display=swap" rel="stylesheet">
-    <!-- FONT: Keeping Kalam as a fallback for stability -->
     <link href="https://fonts.googleapis.com/css2?family=Kalam:wght400;700&display=swap" rel="stylesheet">
 
     <style>
@@ -86,19 +83,14 @@
 </head>
 <body class="p-4">
 
-    <!-- FLOATING IMAGES CONTAINER -->
     <div id="full-screen-floating">
-        <!-- Images will be injected here by JavaScript -->
-    </div>
+        </div>
 
-    <!-- LOGIN CARD -->
     <div class="login-card p-8 sm:p-12 rounded-xl max-w-md w-full mx-auto my-8 text-center">
-        <!-- REMOVED: <img src="cacy.png" alt="Cat Icon" class="w-20 h-20 mx-auto mb-4"> -->
         <h1 class="text-4xl font-extrabold text-[#111827] mb-2">Secret Entrance</h1>
         <p class="text-lg text-gray-700 mb-6">Enter the cacy to proceed to the game zone.</p>
 
         <form id="login-form">
-            <!-- ADDED bg-white to ensure the input field has a solid, visible background -->
             <input 
                 type="password" 
                 id="password-input" 
@@ -118,8 +110,7 @@
 
         <p id="status-message" class="mt-4 text-red-600 font-bold min-h-6"></p>
 
-        <!-- REMOVED: The link to the main page (index.html) is deleted here. -->
-    </div>
+        </div>
 
     <script type="module">
         document.addEventListener('DOMContentLoaded', () => {
@@ -127,25 +118,42 @@
             const passwordInput = document.getElementById('password-input');
             const statusMessage = document.getElementById('status-message');
             
-            // The secret password (K00LC4CY) - UPDATED!
-            const CORRECT_PASSWORD = "K00LC4CY"; 
+            // --- MODIFICATION START: Replaced single password with multi-password logic ---
 
             // Handle form submission
             form.addEventListener('submit', (event) => {
                 event.preventDefault(); // Prevent default form submission
                 
                 const enteredPassword = passwordInput.value.trim();
+                let destinationPage = null; // Variable to hold the redirect URL
 
-                if (enteredPassword === CORRECT_PASSWORD) {
+                // Check the entered password against all known passwords
+                switch (enteredPassword) {
+                    case "K00LC4CY":
+                        destinationPage = "( ͡° ͜ʖ ͡°).html";
+                        break;
+                    case "ILOVEMARIOLIMITEDEDITIONTVDINNERCURRY":
+                        destinationPage = "larry.html";
+                        break;
+                    case "credits":
+                        destinationPage = "credits.html";
+                        break;
+                    // Add more 'case' lines here for new passwords
+                }
+
+                // Check if a match was found
+                if (destinationPage) {
+                    // SUCCESS
                     statusMessage.textContent = 'Access Granted!';
                     statusMessage.classList.remove('text-red-600');
                     statusMessage.classList.add('text-green-600');
                     
-                    // Redirect to the gamesite after a short delay
+                    // Redirect to the correct page after a short delay
                     setTimeout(() => {
-                        window.location.href = '( ͡° ͜ʖ ͡°).html'; 
+                        window.location.href = destinationPage; 
                     }, 500);
                 } else {
+                    // FAILURE
                     statusMessage.textContent = 'Access Denied: Try the Cacy again!';
                     statusMessage.classList.remove('text-green-600');
                     statusMessage.classList.add('text-red-600');
@@ -153,6 +161,9 @@
                     passwordInput.focus();
                 }
             });
+
+            // --- MODIFICATION END ---
+
 
             // --------------------------------------------------------------------------------------------------
             // FLOATING BACKGROUND LOGIC (Copied from ( ͡° ͜ʖ ͡°).html)
@@ -221,5 +232,3 @@
     </script>
 </body>
 </html>
-
-
