@@ -1,0 +1,805 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Feeline</title>
+    <link rel="icon" type="image/png" href="cacy3.png">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Comic+Relief&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Kalam:wght400;700&display=swap" rel="stylesheet">
+
+    <style>
+        /* Custom Styles for the Gamesite */
+        body {
+            /* CHANGED to Comic Relief, followed by Kalam and Comic Sans */
+            font-family: 'Comic Relief', 'Kalam', 'Comic Sans MS', 'Comic Sans', cursive;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            /* UPDATED COLOR: Very Pale Blue Background to show transparency better */
+            background-color: #ECFEFF;
+            /* NEW COLOR: Dark Gray Text */
+            color: #374151;
+            position: relative; /* Needed for z-index context */
+            transition: background-color 0.2s, color 0.2s; /* Added transition for theme change */
+        }
+        
+        /* NEW: Blur/Dimming effect for the body when a game is active */
+        /* UPDATED: Exclude the color picker and theme toggle from the blur */
+        .game-active-bg > :not(#game-view):not(.color-picker-panel):not(.theme-toggle-button) {
+            /* Target all direct children of body EXCEPT the game view, color picker, and theme toggle button */
+            filter: blur(8px) brightness(0.8); /* Apply blur and slightly dim the background */
+            transition: filter 0.4s ease-in-out;
+            pointer-events: none; /* Prevent interaction with background elements */
+        }
+
+
+        /* Ensure the game view itself is transparent so the blurred background shows through */
+        #game-view {
+            background-color: transparent !important;
+        }
+
+        /* Floating Background Styles - MOVED OUTSIDE #game-view */
+        /* It is now absolutely positioned inside the fixed #full-screen-floating element */
+        .floating-image {
+            position: absolute;
+            bottom: -150px; /* Start far below the screen */
+            object-fit: contain;
+            
+            /* Add rotation to the image for better effect */
+            animation: rise 15s linear infinite;
+        }
+
+        /* Keyframe to rise vertically up the container */
+        @keyframes rise {
+            0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(-120vh) rotate(720deg); opacity: 0; }
+        }
+
+        /* The main menu card background/frame */
+        .game-card {
+            /* UPDATED: Clear background for a framed look */
+            background-color: transparent;
+            /* NEW COLOR: Black Border */
+            border: 6px solid #111827;
+            /* Adjusted shadow for clear card */
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            /* CRUCIAL FOR ANIMATION: Add a global transition for all properties */
+            transition: all 0.5s ease-in-out, transform 0.1s, border-color 0.2s, box-shadow 0.2s; 
+            z-index: 10; /* Ensure the game card is on top of the floating layer */
+            position: relative;
+            /* Added a subtle blur effect to help readability over background images */
+            backdrop-filter: blur(5px);
+        }
+
+        /* NEW: Class for the animation target state (fixed position) */
+        .game-card.transforming {
+            position: fixed !important; /* Take it out of flow for fixed positioning */
+            margin: 0 !important; /* Remove any margins */
+            z-index: 55; /* Above game view content (z-40) */
+            border-radius: 0.75rem; /* Match game-box rounded-xl */
+            opacity: 1; 
+        }
+
+        /* NEW: Hide the contents of the lobby card during transformation */
+        .game-card.transforming > :not(.theme-toggle-button):not(.color-picker-panel) {
+            opacity: 0;
+            transition: opacity 0.2s; /* Contents disappear quickly */
+        }
+        
+        /* NEW: Outline for the Game Box (The Iframe Monitor Frame) */
+        /* FIX: Made background transparent so floating images can be seen through it. */
+        #game-box {
+            /* Use a thicker, distinct border for the monitor effect */
+            border: 12px solid #111827; /* Thick Black Border */
+            background-color: transparent !important; 
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5); /* Strong shadow for depth */
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        /* Style for Fullscreen mode to remove the border and round corners */
+        #game-box:fullscreen {
+            border: none !important;
+            border-radius: 0 !important;
+            box-shadow: none !important;
+        }
+
+
+        /* Custom styling for the game cards/buttons */
+        .game-link-card {
+            /* UPDATED: Clear background */
+            background-color: transparent;
+            /* NEW COLOR: Light Gray Border */
+            border: 2px solid #D1D5DB;
+            transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s; /* Added transitions */
+            text-align: center;
+            /* Added a subtle blur effect to help readability over background images */
+            backdrop-filter: blur(2px);
+        }
+        .game-link-card:hover {
+            transform: translateY(-4px);
+            /* NEW COLOR: Black shadow on hover (slightly stronger) */
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.3);
+        }
+        
+        /* UPDATED: Styling for image icons */
+        .game-icon {
+            width: 80px; /* Set a fixed size for uniformity */
+            height: 80px;
+            object-fit: contain; /* Ensure the full image fits without cropping */
+            margin: 0 auto 0.75rem auto; /* Center the image and add bottom margin */
+        }
+
+        /* Custom style for the control buttons (Back, Reload, Download, Fullscreen) */
+        .back-button {
+            /* NEW COLOR: Black Button */
+            background-color: #111827;
+            transition: background-color 0.2s;
+        }
+        /* Adjusted hover for better visibility */
+        .back-button:hover {
+            /* NEW COLOR: Dark Gray Hover */
+            background-color: #374151;
+            color: #FFFFFF;
+        }
+        
+        /* Styling for the Search Bar input */
+        .search-input {
+            /* CHANGED to Comic Relief, Kalam and Comic Sans */
+            font-family: 'Comic Relief', 'Kalam', 'Comic Sans MS', 'Comic Sans', cursive;
+            border: 2px solid #D1D5DB;
+            transition: border-color 0.15s, box-shadow 0.15s, background-color 0.2s, color 0.2s; /* Added transitions */
+        }
+        .search-input:focus {
+            outline: none;
+            border-color: #111827;
+            box-shadow: 0 0 0 2px rgba(17, 24, 39, 0.1); /* Subtle black ring */
+        }
+        
+        @media (max-width: 640px) {
+            /* Adjust controls on mobile */
+            /* Removed the fixed position styles from here as they are now handled by the game wrapper */
+            .back-button {
+                padding: 0.5rem;
+                font-size: 0.875rem; /* text-sm */
+            }
+            .back-button .sm\:inline { /* Hide text on mobile for back button */
+                display: none;
+            }
+        }
+        
+        /* --- NEW: DARK MODE STYLES --- */
+        
+        /* Dark Mode Body */
+        html.dark body {
+            background-color: #111827; /* Dark Blue/Black bg */
+            color: #D1D5DB; /* Light Gray text */
+        }
+        
+        /* Dark Mode Game Card */
+        html.dark .game-card {
+            border-color: #ECFEFF; /* Pale Blue border */
+            box-shadow: 0 5px 15px rgba(236, 254, 255, 0.1); /* Subtle white-ish shadow */
+        }
+        
+        /* Dark Mode Game Box Outline */
+        /* FIX: Made background transparent so floating images can be seen through it. */
+        html.dark #game-box {
+            border: 12px solid #ECFEFF; /* Thick Pale Blue border */
+            background-color: transparent !important;
+            box-shadow: 0 10px 30px rgba(236, 254, 255, 0.1);
+        }
+        
+        /* Dark Mode Game Link Card */
+        html.dark .game-link-card {
+            border-color: #4B5563; /* Darker gray border */
+        }
+        html.dark .game-link-card:hover {
+            box-shadow: 0 8px 15px rgba(236, 254, 255, 0.15); /* Brighter white-ish shadow */
+        }
+        
+        /* Dark Mode Control Buttons */
+        html.dark .back-button {
+            background-color: #ECFEFF;
+            color: #111827; /* Dark text on light button */
+        }
+        html.dark .back-button:hover {
+            background-color: #BFDBFE; /* Lighter blue hover */
+            color: #111827;
+        }
+        
+        /* Dark Mode Search Input */
+        html.dark .search-input {
+            background-color: #374151; /* Darker input bg */
+            border-color: #4B5563; /* Darker gray border */
+            color: #E5E7EB; /* Light text */
+        }
+        html.dark .search-input::placeholder {
+            color: #9CA3AF; /* Lighter placeholder */
+        }
+        html.dark .search-input:focus {
+            border-color: #ECFEFF; /* Pale blue ring */
+            box-shadow: 0 0 0 2px rgba(236, 254, 255, 0.1);
+        }
+        
+        /* Dark Mode Toggle Button Positioning */
+        .theme-toggle-button {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 60; /* Higher than game view (z-40) */
+        }
+        @media (max-width: 640px) {
+            .theme-toggle-button {
+                top: auto; /* Unset top */
+                bottom: 20px; /* Put it at the bottom left */
+                left: 20px; 
+            }
+        }
+
+        /* --- CUSTOM COLOR PICKER PANEL --- */
+        .color-picker-panel {
+            position: fixed;
+            top: 80px;
+            left: 20px;
+            z-index: 60; /* Higher than game view (z-40) */
+            background-color: #ECFEFF; /* Match light theme bg */
+            border: 4px solid #111827; /* Match music player border */
+            transition: background-color 0.2s, border-color 0.2s;
+        }
+        .color-picker-panel label,
+        .color-picker-panel p,
+        .color-picker-panel button {
+             font-family: 'Comic Relief', 'Kalam', 'Comic Sans MS', 'Comic Sans', cursive;
+        }
+        .color-picker-panel input[type="color"] {
+            width: 40px;
+            height: 25px;
+            border: none;
+            padding: 0;
+            background: none;
+            cursor: pointer;
+        }
+
+        html.dark .color-picker-panel {
+            background-color: #1F2937; /* Match dark theme music player */
+            border-color: #ECFEFF;
+        }
+        html.dark .color-picker-panel p,
+        html.dark .color-picker-panel label {
+            color: #ECFEFF;
+        }
+        html.dark .color-picker-panel button {
+            background-color: #4B5563;
+            color: #ECFEFF;
+        }
+        html.dark .color-picker-panel button:hover {
+            background-color: #6B7280;
+        }
+        
+        /* Hide on mobile, it's too much */
+        @media (max-width: 640px) {
+            .color-picker-panel {
+                bottom: 80px; /* Place above the theme toggle */
+                top: auto; /* Reset top */
+                left: 20px;
+            }
+        }
+        /* --- END OF MOBILE ADJUSTMENT FOR CONTROLS --- */
+        
+        /* --- GAME VIEW LAYOUT (FIXED FOR HEIGHT) --- */
+        #game-view {
+            /* FIX: Make it a flex column container centered on the whole screen */
+            padding-top: 0;
+            padding-bottom: 0;
+            align-items: center; /* Center horizontally */
+            justify-content: center; /* Center vertically */
+            flex-direction: column; /* Stack controls and game box vertically */
+            position: fixed; 
+            height: 100vh; /* Ensure it takes full viewport height for centering */
+            max-height: 100vh;
+            overflow: hidden; /* Prevent scroll */
+        }
+        
+        #game-controls {
+            /* Now part of the flex flow, but still visually positioned with wrapper/margin */
+            position: static; /* Revert from absolute */
+            top: auto; /* Reset top */
+            width: 100%;
+            margin-bottom: 0.5rem; /* Add a small space below controls */
+        }
+
+        /* NEW: Utility class to match the width of the game-box in the center (max-w-4xl) */
+        .game-controls-wrapper {
+            max-width: 4xl; /* CHANGED from 6xl to 4xl for a more compact design */
+            width: 100%;
+            margin-left: auto;
+            margin-right: auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        #current-game-title {
+            /* Now a separate block for proper centering above the controls wrapper */
+            margin-bottom: 0.5rem; /* Space below title */
+            z-index: 1; /* Keep it on top */
+            position: relative; /* Needs to be relative to the flow */
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        /* The game box is now positioned below the controls */
+        #game-box {
+            margin-top: 0; /* Remove old margin-top */
+            z-index: 0;
+            /* FIX: Constrain height to viewport minus the title, control bar, and padding (approx 120px total) */
+            max-height: calc(100vh - 120px); 
+            /* NEW: Set max-width to scale proportionally to max-height (16:9 ratio) to prevent vertical overflow */
+            max-width: calc((100vh - 120px) * 16 / 9);
+            width: 90vw; /* General width constraint so it doesn't get too small on wide screens */
+        }
+        
+        /* Ensure iframe is flexible within its new constrained container */
+        #game-iframe {
+            min-height: 0;
+        }
+        
+    </style>
+
+</head>
+
+<body class="p-4">
+
+    <div id="full-screen-floating" class="fixed inset-0 w-full h-full z-0 overflow-hidden">
+        </div>
+
+    <button id="theme-toggle" class="theme-toggle-button p-2 rounded-full text-gray-800 bg-white border-2 border-gray-800 shadow-md dark:bg-gray-700 dark:border-cyan-100 dark:text-cyan-100">
+        <svg id="theme-toggle-light-icon" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-1.414-1.414M6.343 6.343l-1.414-1.414m12.728 0l1.414 1.414M6.343 17.657l-1.414 1.414M12 17a5 5 0 100-10 5 5 0 000 10z" />
+        </svg>
+        <svg id="theme-toggle-dark-icon" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+        </svg>
+    </button>
+
+    <div class="color-picker-panel p-3 rounded-xl shadow-lg">
+        <p class="text-sm font-bold text-center mb-2">Custom Colors</p>
+        <div class="flex items-center justify-between mb-2 space-x-2">
+            <label for="bg-color-picker" class="text-sm mr-2">BG:</label>
+            <input type="color" id="bg-color-picker" value="#ECFEFF">
+        </div>
+        <div class="flex items-center justify-between space-x-2">
+            <label for="text-color-picker" class="text-sm mr-2">Text:</label>
+            <input type="color" id="text-color-picker" value="#374151">
+        </div>
+        <button id="reset-colors-btn" class="text-xs p-1 w-full mt-3 rounded bg-gray-200 text-gray-800 hover:bg-gray-300 transition-colors">Reset to Theme</button>
+    </div>
+
+    <!-- AUDIO PLAYER REMOVED -->
+
+    <div id="main-menu-view" class="game-card p-6 sm:p-10 rounded-xl max-w-6xl w-full mx-auto my-8">
+        <h1 class="text-5xl font-extrabold text-[#111827] dark:text-cyan-100 mb-4 text-center">Feeline</h1>
+        <p class="text-xl text-gray-700 dark:text-gray-300 mb-6 text-center">Feel that? thats the smooth taste of Cacy! Ideas so good, Qottlebup had to rebrand! its called Qbbic now.</p>
+        <p class="text-xl text-gray-700 dark:text-gray-300 mb-6 text-center">Update: We use iFrames and other shit now. dont worry about the cacy images! they will be updated soon!!!</p>
+        <div class="mb-8 flex justify-center">
+            <input 
+                type="text" 
+                id="game-search" 
+                placeholder="Search games (e.g., 'Mario' or 'Papa's')..."
+                class="search-input w-full max-w-lg p-3 rounded-lg text-lg text-gray-700"
+            >
+        </div>
+        
+        <div id="game-list" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
+            <a href="clsupermario64.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="Super Mario 64">
+                <img src="star.gif" alt="Super Mario 64 Icon" class="game-icon">
+                <h3 class="text-xl font-bold mb-0 text-[#111827] dark:text-cyan-100">Super Mario 64</h3>
+                I had 63 stars on this game</a>
+    <div id="game-view" class="hidden fixed inset-0 w-full h-full z-40 flex items-center justify-center p-4">
+        
+        <h2 id="current-game-title" class="text-xl font-extrabold p-2 rounded-lg bg-white dark:bg-gray-700 shadow-lg border-2 border-[#111827] dark:border-cyan-100 max-w-[50%] truncate text-center transition-colors mb-2"></h2>
+
+        <div id="game-controls" class="w-full mb-1">
+            <div class="game-controls-wrapper max-w-4xl px-4 sm:px-6 md:px-8">
+                
+                <div class="flex space-x-2">
+                    <button id="back-button" title="Back to Main Menu" class="back-button flex items-center p-2 rounded-lg text-white font-bold shadow-lg">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                        </svg>
+                        <span class="ml-2 sm:inline">Back</span>
+                    </button>
+                    
+                    <button id="reload-button" title="Reload Game" class="back-button p-2 rounded-lg text-white font-bold shadow-lg hidden sm:flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                        </svg>
+                        <span class="ml-2 hidden sm:inline">Reload</span>
+                    </button>
+                </div>
+                
+                <div class="flex space-x-2">
+                    <a id="download-button" href="#" title="Download Game (Not Functional)" class="back-button flex items-center p-2 rounded-lg text-white font-bold shadow-lg hidden sm:flex" download target="_blank">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                        </svg>
+                        <span class="ml-2 hidden sm:inline">Download</span>
+                    </a>
+                    
+                    <button id="fullscreen-button" title="Enter Fullscreen" class="back-button p-2 rounded-lg text-white font-bold shadow-lg flex items-center">
+                        <svg id="fullscreen-icon" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path id="maximize-path" stroke-linecap="round" stroke-linejoin="round" d="M4 8V4m0 0h4M4 4l5 5m11-5v4m0 0h-4m4-4l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5v-4m0 4h-4m4 0l-5-5" />
+                        </svg>
+                        <span class="ml-2 hidden sm:inline">Fullscreen</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div id="game-box" class="w-full max-w-4xl aspect-video rounded-xl overflow-hidden relative">
+            <iframe id="game-iframe" src="" frameborder="0" class="w-full h-full" allow="accelerometer; gyroscope; fullscreen"></iframe>
+        </div>
+    </div>
+
+
+    <script>
+        // --- 0. Dark Mode Toggle ---
+        const themeToggleBtn = document.getElementById('theme-toggle');
+        const lightIcon = document.getElementById('theme-toggle-light-icon');
+        const darkIcon = document.getElementById('theme-toggle-dark-icon');
+
+        // --- 0.5 Custom Color Controls ---
+        const bgColorPicker = document.getElementById('bg-color-picker');
+        const textColorPicker = document.getElementById('text-color-picker');
+        const resetColorsBtn = document.getElementById('reset-colors-btn');
+
+        // Helper function to set theme
+        function setTheme(isDark) {
+            const savedBg = localStorage.getItem('customBgColor');
+            const savedText = localStorage.getItem('customTextColor');
+
+            if (isDark) {
+                document.documentElement.classList.add('dark');
+                lightIcon.classList.add('hidden');
+                darkIcon.classList.remove('hidden');
+                localStorage.setItem('theme', 'dark');
+
+                // Update pickers *only if* no custom color is set
+                if (!savedBg) bgColorPicker.value = '#111827';
+                if (!savedText) textColorPicker.value = '#D1D5DB';
+            } else {
+                document.documentElement.classList.remove('dark');
+                lightIcon.classList.remove('hidden');
+                darkIcon.classList.add('hidden');
+                localStorage.setItem('theme', 'light');
+
+                // Update pickers *only if* no custom color is set
+                if (!savedBg) bgColorPicker.value = '#ECFEFF';
+                if (!savedText) textColorPicker.value = '#374151';
+            }
+        }
+
+        // Toggle theme on button click
+        themeToggleBtn.addEventListener('click', () => {
+            const isDark = document.documentElement.classList.contains('dark');
+            setTheme(!isDark);
+        });
+
+        // Initial theme load (based on localStorage or system preference)
+        const savedTheme = localStorage.getItem('theme');
+        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+        if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
+            setTheme(true);
+        } else {
+            setTheme(false);
+        }
+
+        // --- 0.6 Custom Color Logic ---
+
+        function applyCustomColors(bg, text) {
+            document.body.style.setProperty('background-color', bg);
+            document.body.style.setProperty('color', text);
+            document.querySelector('.color-picker-panel').style.setProperty('background-color', bg);
+        }
+
+        // Load saved custom colors
+        const savedBg = localStorage.getItem('customBgColor');
+        const savedText = localStorage.getItem('customTextColor');
+        if (savedBg && savedText) {
+            applyCustomColors(savedBg, savedText);
+            bgColorPicker.value = savedBg;
+            textColorPicker.value = savedText;
+        }
+
+        // Event listeners for color pickers
+        bgColorPicker.addEventListener('input', (e) => {
+            const color = e.target.value;
+            document.body.style.setProperty('background-color', color);
+            document.querySelector('.color-picker-panel').style.setProperty('background-color', color);
+            localStorage.setItem('customBgColor', color);
+        });
+
+        textColorPicker.addEventListener('input', (e) => {
+            const color = e.target.value;
+            document.body.style.setProperty('color', color);
+            localStorage.setItem('customTextColor', color);
+        });
+
+        // Event listener for reset button
+        resetColorsBtn.addEventListener('click', () => {
+            localStorage.removeItem('customBgColor');
+            localStorage.removeItem('customTextColor');
+            // Re-apply theme to reset to default theme colors
+            const isDark = document.documentElement.classList.contains('dark');
+            setTheme(isDark);
+            
+            // Remove inline styles to rely on CSS rules
+            document.body.style.removeProperty('background-color');
+            document.body.style.removeProperty('color');
+            document.querySelector('.color-picker-panel').style.removeProperty('background-color');
+        });
+
+
+        // --- 1. Game Search/Filter ---
+        const searchInput = document.getElementById('game-search');
+        const gameLinks = document.getElementById('game-list').querySelectorAll('a');
+
+        searchInput.addEventListener('input', (e) => {
+            const searchTerm = e.target.value.toLowerCase();
+            
+            gameLinks.forEach(link => {
+                const title = link.querySelector('h3').textContent.toLowerCase();
+                // data-title attribute is used for more keywords (e.g., 'Slope 2' might have 'dash' or 'Dash')
+                const dataTitle = link.getAttribute('data-title').toLowerCase();
+                const description = link.textContent.toLowerCase();
+
+                // Check if the search term is in the title, data-title, or description
+                if (title.includes(searchTerm) || dataTitle.includes(searchTerm) || description.includes(searchTerm)) {
+                    link.style.display = 'block'; // Show the game card
+                } else {
+                    link.style.display = 'none'; // Hide the game card
+                }
+            });
+        });
+
+
+        // --- 2. Floating Background Animation (Image Spawner) ---
+        // CHANGED: Container is now a fixed background element in the body
+        const floatingContainer = document.getElementById('full-screen-floating'); 
+        const imageSources = [
+            "cacy.png",
+            "cacy2.png",
+            "cacy3.png",
+            "cacy4.png",
+            "cacy5.png", // Added another GIF for variety
+            "cacy6.png"  // Added another icon
+        ];
+
+        function createFloatingImage() {
+            const img = document.createElement('img');
+            img.src = imageSources[Math.floor(Math.random() * imageSources.length)];
+            img.className = 'floating-image w-20 h-20 sm:w-28 sm:h-28'; // Tailwind classes for sizing
+
+            // Random horizontal start position (0% to 100% width)
+            const startX = Math.random() * 100;
+            img.style.left = `${startX}vw`;
+
+            // Randomize animation duration for a staggered look (10s to 25s)
+            const duration = Math.random() * 15 + 10;
+            img.style.animationDuration = `${duration}s`;
+
+            // Randomize initial rotation (720deg is already in CSS, this adds a random offset)
+            const initialRotation = Math.random() * 360;
+            img.style.transform = `translateY(0) rotate(${initialRotation}deg)`;
+
+            // Clean up the element after animation ends
+            img.addEventListener('animationend', () => {
+                img.remove();
+            });
+
+            floatingContainer.appendChild(img);
+        }
+
+        // NEW: Function to start the staggered image spawner with slower intervals
+        function startFloatingImageSpawner() {
+            // Randomize the delay for the next image spawn (4 seconds to 8 seconds)
+            const delay = Math.random() * 4000 + 4000; 
+            
+            setTimeout(() => {
+                createFloatingImage();
+                // Call the function again to set up the next random spawn
+                startFloatingImageSpawner(); 
+            }, delay);
+        }
+
+        // Start the whole process
+        startFloatingImageSpawner(); 
+
+        
+        // --- 3. Game Iframe Loader & Controls & ANIMATION LOGIC ---
+
+        const mainMenu = document.getElementById('main-menu-view');
+        const gameView = document.getElementById('game-view');
+        const gameIframe = document.getElementById('game-iframe');
+        const backButton = document.getElementById('back-button');
+        const reloadButton = document.getElementById('reload-button');
+        const downloadButton = document.getElementById('download-button');
+        const fullscreenButton = document.getElementById('fullscreen-button');
+        const fullscreenIcon = document.getElementById('fullscreen-icon');
+        const currentGameTitle = document.getElementById('current-game-title');
+        const body = document.body;
+        const gameBox = document.getElementById('game-box');
+        let currentLoadedGameUrl = '';
+
+        const themeToggleButton = document.querySelector('.theme-toggle-button');
+        const colorPickerPanel = document.querySelector('.color-picker-panel');
+
+
+        // 3.1 Handle Game Link Clicks
+        gameLinks.forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+
+                const gameUrl = link.href;
+                const gameTitle = link.getAttribute('data-title');
+                
+                // 1. Ensure game-view is visible (to get correct rects) but hidden from view flow
+                // This is safe because we hide the main menu later and load the iframe later.
+                gameView.classList.remove('hidden'); 
+
+                // Wait for the next frame to ensure layout is calculated before measuring
+                window.requestAnimationFrame(() => {
+                    
+                    // Get the bounding rectangle of the target game-box
+                    const targetRect = gameBox.getBoundingClientRect();
+                    
+                    // Get the initial position and size of the main-menu-view
+                    const initialRect = mainMenu.getBoundingClientRect();
+                    
+                    // Apply initial fixed position to prevent jump
+                    mainMenu.style.position = 'fixed';
+                    mainMenu.style.top = `${initialRect.top}px`;
+                    mainMenu.style.left = `${initialRect.left}px`;
+                    mainMenu.style.width = `${initialRect.width}px`;
+                    mainMenu.style.height = `${initialRect.height}px`;
+                    
+                    // 2. Start the animation
+                    // Use a short delay (e.g., 10ms) to ensure the initial fixed position is applied before transition starts
+                    setTimeout(() => {
+                        mainMenu.classList.add('transforming'); 
+                        
+                        // Apply target styles to trigger the smooth transition
+                        mainMenu.style.top = `${targetRect.top}px`;
+                        mainMenu.style.left = `${targetRect.left}px`;
+                        mainMenu.style.width = `${targetRect.width}px`;
+                        mainMenu.style.height = `${targetRect.height}px`;
+                        
+                        // Apply the border/color change to match game-box style
+                        const isDark = document.documentElement.classList.contains('dark');
+                        const targetBorderColor = isDark ? '#ECFEFF' : '#111827';
+                        const targetBorderWidth = '12px'; // Match game-box border width
+                        
+                        mainMenu.style.borderColor = targetBorderColor;
+                        mainMenu.style.borderWidth = targetBorderWidth;
+
+                    }, 10); 
+                    
+                    // 3. Wait for animation and complete transition
+                    const transitionDuration = 500; // Match the CSS transition duration (0.5s)
+                    setTimeout(() => {
+                        
+                        // Set the iframe source, title, and download link
+                        gameIframe.src = gameUrl;
+                        currentGameTitle.textContent = gameTitle;
+                        downloadButton.href = gameUrl; 
+                        currentLoadedGameUrl = gameUrl;
+
+                        // Hide the main menu
+                        mainMenu.classList.add('hidden');
+                        
+                        // Apply background blur/dimming to body (excluding #game-view)
+                        body.classList.add('game-active-bg');
+
+                        // Reset the Main Menu's state for the next use (important!)
+                        mainMenu.classList.remove('transforming');
+                        mainMenu.style.position = '';
+                        mainMenu.style.top = '';
+                        mainMenu.style.left = '';
+                        mainMenu.style.width = '';
+                        mainMenu.style.height = '';
+                        mainMenu.style.borderColor = ''; // Revert to CSS default
+                        mainMenu.style.borderWidth = ''; // Revert to CSS default
+
+                    }, transitionDuration + 10); // A small buffer (10ms) after transition
+
+                }); // End of requestAnimationFrame
+                
+                // Update document title
+                document.title = `${gameTitle} - Feeline`;
+                
+            });
+        });
+
+        // 3.2 Handle Back Button Click
+        backButton.addEventListener('click', () => {
+            // Check if we are in fullscreen mode and exit first
+            if (document.fullscreenElement) {
+                document.exitFullscreen();
+            }
+
+            // Remove blur/dimming effect from the body background
+            body.classList.remove('game-active-bg');
+            
+            // Stop the game and clear the iframe
+            gameIframe.src = '';
+            currentLoadedGameUrl = '';
+
+            // Hide the game view
+            gameView.classList.add('hidden');
+
+            // Show the main menu
+            mainMenu.classList.remove('hidden'); 
+            
+            // Reset document title
+            document.title = 'Feeline';
+        });
+
+        // 3.3 Handle Reload Button Click
+        reloadButton.addEventListener('click', () => {
+            if (currentLoadedGameUrl) {
+                // Set the src again to force a reload
+                gameIframe.src = currentLoadedGameUrl;
+            }
+        });
+        
+        // 3.4 Handle Fullscreen Button Click
+        fullscreenButton.addEventListener('click', () => {
+            // Target the gameBox element for fullscreen
+            
+            if (document.fullscreenElement) {
+                // Exit fullscreen
+                document.exitFullscreen();
+            } else {
+                // Enter fullscreen
+                if (gameBox.requestFullscreen) {
+                    gameBox.requestFullscreen();
+                } else if (gameBox.webkitRequestFullscreen) { /* Safari */
+                    gameBox.webkitRequestFullscreen();
+                } else if (gameBox.msRequestFullscreen) { /* IE11 */
+                    gameBox.msRequestFullscreen();
+                }
+            }
+        });
+        
+        // 3.5 Listen for fullscreen change to update button icon (good UX)
+        document.addEventListener('fullscreenchange', () => {
+            const isFullscreen = !!document.fullscreenElement;
+            
+            // In fullscreen mode, hide the Theme Toggle and Color Picker so they don't cover the game
+            if (isFullscreen) {
+                themeToggleButton.classList.add('hidden');
+                colorPickerPanel.classList.add('hidden');
+                
+                // Icon for "Exit Fullscreen" (Shrink/Minimize)
+                fullscreenIcon.innerHTML = `<path id="minimize-path" stroke-linecap="round" stroke-linejoin="round" d="M15 17h5m0 0v5m0-5l-5-5M4 8V4m0 0h4M4 4l5 5m11-5v4m0 0h-4m4-4l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5v-4m0 4h-4m4 0l-5-5" />`;
+                fullscreenButton.title = 'Exit Fullscreen (Press ESC)';
+            } else {
+                // Show them again when exiting fullscreen
+                themeToggleButton.classList.remove('hidden');
+                colorPickerPanel.classList.remove('hidden');
+
+                // Icon for "Enter Fullscreen" (Maximize)
+                fullscreenIcon.innerHTML = `<path id="maximize-path" stroke-linecap="round" stroke-linejoin="round" d="M4 8V4m0 0h4M4 4l5 5m11-5v4m0 0h-4m4-4l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5v-4m0 4h-4m4 0l-5-5" />`;
+                fullscreenButton.title = 'Enter Fullscreen';
+            }
+        });
+        
+    </script>
+</body>
+</html>
