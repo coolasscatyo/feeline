@@ -7,7 +7,7 @@
     <script src="https://unpkg.com/@ruffle-rs/ruffle"></script>
 </head>
 <body>
-    <div id="ruffle-player-container" style="width: 800px; height: 600px;"></div>
+    <div id="ruffle-player-container"></div>
     <script>
         window.RufflePlayer = window.RufflePlayer || {};
         window.addEventListener("DOMContentLoaded", () => {
@@ -15,7 +15,8 @@
             let player = ruffle.createPlayer();
             let container = document.getElementById("ruffle-player-container");
             container.appendChild(player);
-            // Load the SWF file using the JS API
+            player.style.width = "100%";
+            player.style.height = "100%";
             player.load({ url: "Toxic_2.swf" }); 
         });
     </script>
