@@ -5,6 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Toxic2</title>
     <script src="https://unpkg.com/@ruffle-rs/ruffle"></script>
+    <object width="100%" height="100%">
+        <param name="movie" value="Toxic2.swf">
+        <embed src="Toxic2.swf" width="100%" height="100%" data-scale="showall" />
+    </object>
     <link rel="stylesheet" href="Toxic2.css">
 </head>
 <body>
@@ -16,8 +20,6 @@
             let player = ruffle.createPlayer();
             let container = document.getElementById("ruffle-player-container");
             container.appendChild(player);
-            player.style.width = "100%";
-            player.style.height = "100%";
             player.load({ url: "Toxic_2.swf" }); 
         });
     </script>
