@@ -113,6 +113,8 @@
         </div>
 
     <script type="module">
+        import { Password } from "./password.js";
+        let pass = Password(false);
         document.addEventListener('DOMContentLoaded', () => {
             const form = document.getElementById('login-form');
             const passwordInput = document.getElementById('password-input');
@@ -147,6 +149,7 @@
                     statusMessage.textContent = 'Access Granted!';
                     statusMessage.classList.remove('text-red-600');
                     statusMessage.classList.add('text-green-600');
+                    pass.changeState();
                     
                     // Redirect to the correct page after a short delay
                     setTimeout(() => {
@@ -232,3 +235,4 @@
     </script>
 </body>
 </html>
+
