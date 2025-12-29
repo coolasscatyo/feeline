@@ -111,10 +111,7 @@
         <p id="status-message" class="mt-4 text-red-600 font-bold min-h-6"></p>
 
         </div>
-
     <script type="module">
-        import { Password } from "./password.js";
-        let pass = Password();
         document.addEventListener('DOMContentLoaded', () => {
             const form = document.getElementById('login-form');
             const passwordInput = document.getElementById('password-input');
@@ -149,7 +146,6 @@
                     statusMessage.textContent = 'Access Granted!';
                     statusMessage.classList.remove('text-red-600');
                     statusMessage.classList.add('text-green-600');
-                    pass.SetTrue();
                     
                     // Redirect to the correct page after a short delay
                     setTimeout(() => {
@@ -235,6 +231,7 @@
     </script>
 </body>
 </html>
+
 
 
 
