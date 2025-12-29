@@ -1,11 +1,25 @@
 export default class Password
 {
-  constructor(Passed)
+  let Passed;
+  static setTrue()
   {
-    this.Passed = Passed;
+    let Passed = true;
   }
-  changeState()
+  static setFalse()
   {
-    this.Passed = true
+    let Passed = false;
+  }
+  static checkState(arg)
+  {
+    if (arg == true)
+    {
+      return true
+    } else if (arg == false)
+    {
+      return false
+    } else
+    {
+      return undefined
+    }
   }
 }
