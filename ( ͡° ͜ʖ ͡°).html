@@ -1049,7 +1049,6 @@
 
 
     <script>
-        import { Password } from "./password.js";
         // --- 0. Dark Mode Toggle ---
         const themeToggleBtn = document.getElementById('theme-toggle');
         const lightIcon = document.getElementById('theme-toggle-light-icon');
@@ -1058,19 +1057,7 @@
         // --- 0.5 Custom Color Controls ---
         const bgColorPicker = document.getElementById('bg-color-picker');
         const textColorPicker = document.getElementById('text-color-picker');
-        const resetColorsBtn = document.getElementById('reset-colors-btn');
-        let Password = Password();
-        let go = Password.checkState(Password.Passed);
-        if (go == true)
-        {
-            return;
-        } else if (go == false)
-        {
-            window.location.href = "no.html";
-        } else
-        {
-            window.location.href = "no.html";
-        }
+        const resetColorsBtn = document.getElementById('reset-colors-btn')
         // Helper function to set theme
         function setTheme(isDark) {
             const savedBg = localStorage.getItem('customBgColor');
@@ -1530,6 +1517,7 @@
     </script>
 </body>
 </html>
+
 
 
 
