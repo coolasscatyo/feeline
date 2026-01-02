@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://unpkg.com/@ruffle-rs/ruffle"></script>
+    <object width="100%" height="100%">
+        <param name="movie" value="BiWrath.swf">  <!--  replace swf name  -->
+        <embed src="BiWrath.swf" width="100%" height="100%" data-scale="showall" />  <!--  replace swf name  -->
+    </object>
+    <link rel="stylesheet" href="defaultFormat.css">
+</head>
+<body>
+    <div id="ruffle-player-container"></div>
+    <script>
+        window.RufflePlayer = window.RufflePlayer || {};
+        window.addEventListener("DOMContentLoaded", () => {
+            let ruffle = window.RufflePlayer.newest();
+            let player = ruffle.createPlayer();
+            let container = document.getElementById("ruffle-player-container");
+            let swf = "BiWrath.swf";
+            container.appendChild(player);
+            player.load({ url: `${swf}` }); 
+        });
+    </script>
+</body>
+</html>
