@@ -30,9 +30,9 @@
         }
         
         /* NEW: Blur/Dimming effect for the body when a game is active */
-        /* UPDATED: Exclude the color picker and theme toggle from the blur */
-        .game-active-bg > :not(#game-view):not(.color-picker-panel):not(.theme-toggle-button) {
-            /* Target all direct children of body EXCEPT the game view, color picker, and theme toggle button */
+        /* UPDATED: Exclude the settings and music player from the blur */
+        .game-active-bg > :not(#game-view):not(#settings-panel):not(#settings-button):not(.music-player) {
+            /* Target all direct children of body EXCEPT the game view, settings, and music player */
             filter: blur(8px) brightness(0.8); /* Apply blur and slightly dim the background */
             transition: filter 0.4s ease-in-out;
             pointer-events: none; /* Prevent interaction with background elements */
@@ -119,12 +119,42 @@
             text-align: center;
             /* Added a subtle blur effect to help readability over background images */
             backdrop-filter: blur(2px);
+            position: relative; /* For absolute positioning of favorite star */
         }
         .game-link-card:hover {
             transform: translateY(-4px);
             /* NEW COLOR: Black shadow on hover (slightly stronger) */
             box-shadow: 0 8px 15px rgba(0, 0, 0, 0.3);
         }
+
+        /* Favorite Button Styling */
+        .favorite-btn {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            z-index: 20; /* Above card content */
+            color: #D1D5DB; /* Default gray */
+            cursor: pointer;
+            transition: color 0.2s, transform 0.1s;
+        }
+        .favorite-btn:hover {
+            transform: scale(1.2);
+            color: #F59E0B; /* Amber on hover */
+        }
+        .favorite-btn.active {
+            color: #F59E0B; /* Gold/Amber when active */
+        }
+        
+        /* Favorites Section Styling */
+        #favorites-container {
+            border-top: 4px solid #111827;
+            background-color: rgba(255, 255, 255, 0.3);
+        }
+        html.dark #favorites-container {
+            border-color: #ECFEFF;
+            background-color: rgba(0, 0, 0, 0.3);
+        }
+
         
         /* UPDATED: Styling for image icons */
         .game-icon {
@@ -194,7 +224,6 @@
                 width: auto;
             }
             /* Adjust controls on mobile */
-            /* Removed the fixed position styles from here as they are now handled by the game wrapper */
             .back-button {
                 padding: 0.5rem;
                 font-size: 0.875rem; /* text-sm */
@@ -219,7 +248,6 @@
         }
         
         /* Dark Mode Game Box Outline */
-        /* FIX: Made background transparent so floating images can be seen through it. */
         html.dark #game-box {
             border: 12px solid #ECFEFF; /* Thick Pale Blue border */
             background-color: transparent !important;
@@ -269,71 +297,100 @@
             background-color: #4B5563; /* Darker gray hover */
         }
 
-        /* Dark Mode Toggle Button Positioning */
-        .theme-toggle-button {
+        /* --- SETTINGS PANEL & BUTTON --- */
+        #settings-button {
             position: fixed;
             top: 20px;
             left: 20px;
-            z-index: 60; /* Higher than game view (z-40) and music player (z-50) */
+            z-index: 60;
+            transition: transform 0.2s;
         }
-        @media (max-width: 640px) {
-            .theme-toggle-button {
-                top: auto; /* Unset top */
-                bottom: 20px; /* Put it at the bottom left */
-                left: 20px; 
-            }
+        #settings-button:hover {
+            transform: rotate(90deg);
         }
 
-        /* --- CUSTOM COLOR PICKER PANEL --- */
-        .color-picker-panel {
-            position: fixed;
-            top: 80px;
-            left: 20px;
-            z-index: 60; /* Higher than game view (z-40) and music player (z-50) */
-            background-color: #ECFEFF; /* Match light theme bg */
-            border: 4px solid #111827; /* Match music player border */
-            transition: background-color 0.2s, border-color 0.2s;
-        }
-        .color-picker-panel label,
-        .color-picker-panel p,
-        .color-picker-panel button {
-             font-family: 'Comic Relief', 'Kalam', 'Comic Sans MS', 'Comic Sans', cursive;
-        }
-        .color-picker-panel input[type="color"] {
-            width: 40px;
-            height: 25px;
-            border: none;
-            padding: 0;
-            background: none;
-            cursor: pointer;
-        }
-
-        html.dark .color-picker-panel {
-            background-color: #1F2937; /* Match dark theme music player */
-            border-color: #ECFEFF;
-        }
-        html.dark .color-picker-panel p,
-        html.dark .color-picker-panel label {
-            color: #ECFEFF;
-        }
-        html.dark .color-picker-panel button {
-            background-color: #4B5563;
-            color: #ECFEFF;
-        }
-        html.dark .color-picker-panel button:hover {
-            background-color: #6B7280;
-        }
-        
-        /* Hide on mobile, it's too much */
         @media (max-width: 640px) {
-            .color-picker-panel {
-                bottom: 80px; /* Place above the theme toggle */
-                top: auto; /* Reset top */
+            #settings-button {
+                top: auto;
+                bottom: 20px; /* Bottom left on mobile */
                 left: 20px;
             }
         }
-        /* --- END OF MOBILE ADJUSTMENT FOR CONTROLS --- */
+
+        #settings-panel {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 100;
+            width: 90%;
+            max-width: 350px;
+            background-color: #ECFEFF;
+            border: 4px solid #111827;
+            border-radius: 1rem;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3), 0 10px 10px -5px rgba(0, 0, 0, 0.2);
+            font-family: 'Comic Relief', 'Kalam', 'Comic Sans MS', 'Comic Sans', cursive;
+        }
+
+        #settings-panel.hidden {
+            display: none;
+        }
+
+        /* Dark Mode Settings Panel */
+        html.dark #settings-panel {
+            background-color: #1F2937;
+            border-color: #ECFEFF;
+            color: #D1D5DB;
+        }
+        html.dark #settings-panel button.close-btn {
+            color: #ECFEFF;
+        }
         
+        /* Settings Toggle Switch */
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 44px;
+            height: 24px;
+        }
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 24px;
+        }
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        input:checked + .slider {
+            background-color: #111827; /* Dark Blue active */
+        }
+        html.dark input:checked + .slider {
+            background-color: #ECFEFF; /* Pale Blue active in dark mode */
+        }
+        input:checked + .slider:before {
+            transform: translateX(20px);
+        }
+
+
         /* --- GAME VIEW LAYOUT (FIXED FOR HEIGHT) --- */
         #game-view {
             /* FIX: Make it a flex column container centered on the whole screen */
@@ -398,29 +455,62 @@
 
 <body class="p-4">
 
-    <div id="full-screen-floating" class="fixed inset-0 w-full h-full z-0 overflow-hidden">
-        </div>
+    <!-- Background Spawner Container -->
+    <div id="full-screen-floating" class="fixed inset-0 w-full h-full z-0 overflow-hidden pointer-events-none"></div>
 
-    <button id="theme-toggle" class="theme-toggle-button p-2 rounded-full text-gray-800 bg-white border-2 border-gray-800 shadow-md dark:bg-gray-700 dark:border-cyan-100 dark:text-cyan-100">
-        <svg id="theme-toggle-light-icon" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-1.414-1.414M6.343 6.343l-1.414-1.414m12.728 0l1.414 1.414M6.343 17.657l-1.414 1.414M12 17a5 5 0 100-10 5 5 0 000 10z" />
-        </svg>
-        <svg id="theme-toggle-dark-icon" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+    <!-- Settings Button (Gear Icon) -->
+    <button id="settings-button" class="p-3 rounded-full bg-white dark:bg-gray-700 border-4 border-[#111827] dark:border-cyan-100 shadow-xl text-[#111827] dark:text-cyan-100" title="Settings">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
         </svg>
     </button>
 
-    <div class="color-picker-panel p-3 rounded-xl shadow-lg">
-        <p class="text-sm font-bold text-center mb-2">Custom Colors</p>
-        <div class="flex items-center justify-between mb-2 space-x-2">
-            <label for="bg-color-picker" class="text-sm mr-2">BG:</label>
-            <input type="color" id="bg-color-picker" value="#ECFEFF">
+    <!-- Settings Panel (Hidden by default) -->
+    <div id="settings-panel" class="hidden p-6">
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="text-2xl font-bold text-[#111827] dark:text-cyan-100">Settings</h2>
+            <button id="close-settings" class="close-btn text-2xl font-bold hover:text-gray-500">&times;</button>
         </div>
-        <div class="flex items-center justify-between space-x-2">
-            <label for="text-color-picker" class="text-sm mr-2">Text:</label>
-            <input type="color" id="text-color-picker" value="#374151">
+
+        <!-- 1. Theme Toggle -->
+        <div class="flex items-center justify-between mb-6">
+            <span class="font-bold text-lg">Dark Mode</span>
+            <label class="toggle-switch">
+                <input type="checkbox" id="dark-mode-toggle">
+                <span class="slider"></span>
+            </label>
         </div>
-        <button id="reset-colors-btn" class="text-xs p-1 w-full mt-3 rounded bg-gray-200 text-gray-800 hover:bg-gray-300 transition-colors">Reset to Theme</button>
+
+        <!-- 2. Cacy Images Toggle -->
+        <div class="flex items-center justify-between mb-6">
+            <span class="font-bold text-lg">Cacy Images</span>
+            <label class="toggle-switch">
+                <input type="checkbox" id="cacy-images-toggle" checked>
+                <span class="slider"></span>
+            </label>
+        </div>
+
+        <!-- 3. Custom Colors -->
+        <div class="border-t border-gray-300 dark:border-gray-600 pt-4">
+            <p class="text-sm font-bold mb-4 uppercase tracking-wider text-gray-500 dark:text-gray-400">Custom Colors</p>
+            
+            <div class="flex items-center justify-between mb-4">
+                <label for="bg-color-picker" class="text-sm">Background:</label>
+                <div class="flex items-center">
+                    <input type="color" id="bg-color-picker" value="#ECFEFF" class="w-10 h-8 border-none bg-transparent cursor-pointer">
+                </div>
+            </div>
+            
+            <div class="flex items-center justify-between mb-4">
+                <label for="text-color-picker" class="text-sm">Text Color:</label>
+                <div class="flex items-center">
+                    <input type="color" id="text-color-picker" value="#374151" class="w-10 h-8 border-none bg-transparent cursor-pointer">
+                </div>
+            </div>
+
+            <button id="reset-colors-btn" class="w-full py-2 mt-2 rounded bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-white font-bold hover:bg-gray-300 dark:hover:bg-gray-500 transition-colors">Reset Colors</button>
+        </div>
     </div>
 
 
@@ -461,12 +551,13 @@
             <input 
                 type="text" 
                 id="game-search" 
-                placeholder="Search games (e.g., 'Mario' or 'Papa's')..."
+                placeholder="Search games..."
                 class="search-input w-full max-w-lg p-3 rounded-lg text-lg text-gray-700"
             >
         </div>
         
-        <div id="game-list" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
+        <div id="game-list" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 mb-12">
+            <!-- Game Links are here -->
             <a href="clsupermario64.html" class="game-link-card block p-4 rounded-lg cursor-pointer" data-title="Super Mario 64">
                 <img src="star.gif" alt="Super Mario 64 Icon" class="game-icon">
                 <h3 class="text-xl font-bold mb-0 text-[#111827] dark:text-cyan-100">Super Mario 64</h3>
@@ -1025,6 +1116,15 @@
                 <h3 class="text-xl font-bold mb-0 text-[#111827] dark:text-cyan-100">Pixel Quest: The Lost Idols</h3>
                 Dash, then pause, then unpause. See what happens. :)</a>
         </div>
+
+        <!-- NEW: Favorites Section (Hidden by default if empty) -->
+        <div id="favorites-section" class="hidden">
+            <h2 class="text-3xl font-bold text-[#111827] dark:text-cyan-100 mb-4 text-center">Your Favorites</h2>
+            <div id="favorites-container" class="p-6 rounded-xl grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
+                <!-- Favorite games will be injected here -->
+            </div>
+        </div>
+
     </div>
     <div id="game-view" class="hidden fixed inset-0 w-full h-full z-40 flex items-center justify-center p-4">
         
@@ -1074,82 +1174,87 @@
 
 
     <script>
-        // --- 0. Dark Mode Toggle ---
-        const themeToggleBtn = document.getElementById('theme-toggle');
-        const lightIcon = document.getElementById('theme-toggle-light-icon');
-        const darkIcon = document.getElementById('theme-toggle-dark-icon');
+        // --- SETTINGS PANEL LOGIC ---
+        const settingsButton = document.getElementById('settings-button');
+        const settingsPanel = document.getElementById('settings-panel');
+        const closeSettingsBtn = document.getElementById('close-settings');
 
-        // --- 0.5 Custom Color Controls ---
+        settingsButton.addEventListener('click', () => {
+            settingsPanel.classList.remove('hidden');
+        });
+
+        closeSettingsBtn.addEventListener('click', () => {
+            settingsPanel.classList.add('hidden');
+        });
+
+        window.addEventListener('click', (e) => {
+            if (!settingsPanel.contains(e.target) && !settingsButton.contains(e.target) && !settingsPanel.classList.contains('hidden')) {
+               settingsPanel.classList.add('hidden');
+            }
+        });
+
+
+        // --- 1. DARK MODE TOGGLE ---
+        const darkModeToggle = document.getElementById('dark-mode-toggle');
         const bgColorPicker = document.getElementById('bg-color-picker');
         const textColorPicker = document.getElementById('text-color-picker');
-        const resetColorsBtn = document.getElementById('reset-colors-btn')
-        // Helper function to set theme
-        function setTheme(isDark) {
-            const savedBg = localStorage.getItem('customBgColor');
-            const savedText = localStorage.getItem('customTextColor');
+        const resetColorsBtn = document.getElementById('reset-colors-btn');
 
+        function setTheme(isDark) {
             if (isDark) {
                 document.documentElement.classList.add('dark');
-                lightIcon.classList.add('hidden');
-                darkIcon.classList.remove('hidden');
                 localStorage.setItem('theme', 'dark');
-
-                // Update pickers *only if* no custom color is set
-                if (!savedBg) bgColorPicker.value = '#111827';
-                if (!savedText) textColorPicker.value = '#D1D5DB';
+                darkModeToggle.checked = true;
+                
+                if (!localStorage.getItem('customBgColor')) bgColorPicker.value = '#1F2937'; 
+                if (!localStorage.getItem('customTextColor')) textColorPicker.value = '#D1D5DB';
             } else {
                 document.documentElement.classList.remove('dark');
-                lightIcon.classList.remove('hidden');
-                darkIcon.classList.add('hidden');
                 localStorage.setItem('theme', 'light');
+                darkModeToggle.checked = false;
 
-                // Update pickers *only if* no custom color is set
-                if (!savedBg) bgColorPicker.value = '#ECFEFF';
-                if (!savedText) textColorPicker.value = '#374151';
+                if (!localStorage.getItem('customBgColor')) bgColorPicker.value = '#ECFEFF';
+                if (!localStorage.getItem('customTextColor')) textColorPicker.value = '#374151';
             }
         }
 
-        // Toggle theme on button click
-        themeToggleBtn.addEventListener('click', () => {
-            const isDark = document.documentElement.classList.contains('dark');
-            setTheme(!isDark);
+        darkModeToggle.addEventListener('change', (e) => {
+            setTheme(e.target.checked);
         });
 
-        // Initial theme load (based on localStorage or system preference)
         const savedTheme = localStorage.getItem('theme');
         const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-
         if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
             setTheme(true);
         } else {
             setTheme(false);
         }
 
-        // --- 0.6 Custom Color Logic ---
 
+        // --- 2. CUSTOM COLORS ---
         function applyCustomColors(bg, text) {
-            document.body.style.setProperty('background-color', bg);
-            document.body.style.setProperty('color', text);
-            document.querySelector('#music-player p').style.setProperty('color', text);
-            document.querySelector('.music-player').style.setProperty('background-color', bg);
-            document.querySelector('.color-picker-panel').style.setProperty('background-color', bg);
+            if(bg) {
+                document.body.style.setProperty('background-color', bg);
+                document.querySelector('.music-player').style.setProperty('background-color', bg);
+            }
+            if(text) {
+                document.body.style.setProperty('color', text);
+                document.querySelector('#music-player p').style.setProperty('color', text);
+            }
         }
 
-        // Load saved custom colors
         const savedBg = localStorage.getItem('customBgColor');
         const savedText = localStorage.getItem('customTextColor');
-        if (savedBg && savedText) {
+        if (savedBg || savedText) {
             applyCustomColors(savedBg, savedText);
-            bgColorPicker.value = savedBg;
-            textColorPicker.value = savedText;
+            if(savedBg) bgColorPicker.value = savedBg;
+            if(savedText) textColorPicker.value = savedText;
         }
 
-        // Event listeners for color pickers
         bgColorPicker.addEventListener('input', (e) => {
             const color = e.target.value;
             document.body.style.setProperty('background-color', color);
             document.querySelector('.music-player').style.setProperty('background-color', color);
-            document.querySelector('.color-picker-panel').style.setProperty('background-color', color);
             localStorage.setItem('customBgColor', color);
         });
 
@@ -1160,99 +1265,217 @@
             localStorage.setItem('customTextColor', color);
         });
 
-        // Event listener for reset button
         resetColorsBtn.addEventListener('click', () => {
             localStorage.removeItem('customBgColor');
             localStorage.removeItem('customTextColor');
-            // Re-apply theme to reset to default theme colors
-            const isDark = document.documentElement.classList.contains('dark');
-            setTheme(isDark);
             
-            // Remove inline styles to rely on CSS rules
             document.body.style.removeProperty('background-color');
             document.body.style.removeProperty('color');
-            document.querySelector('#music-player p').style.removeProperty('color');
             document.querySelector('.music-player').style.removeProperty('background-color');
-            document.querySelector('.color-picker-panel').style.removeProperty('background-color');
+            document.querySelector('#music-player p').style.removeProperty('color');
+
+            setTheme(document.documentElement.classList.contains('dark'));
         });
 
 
-        // --- 1. Game Search/Filter ---
+        // --- 3. CACY IMAGES (UPDATED: LESS FREQUENT SPAWN) ---
+        const floatingContainer = document.getElementById('full-screen-floating'); 
+        const cacyToggle = document.getElementById('cacy-images-toggle');
+        const imageSources = [
+            "cacy.png", "cacy2.png", "cacy3.png", "cacy4.png", "cacy5.png", "cacy6.png"
+        ];
+        
+        let cacyEnabled = true;
+        let cacyTimeoutId = null;
+
+        if (localStorage.getItem('cacyImages') === 'false') {
+            cacyEnabled = false;
+            cacyToggle.checked = false;
+        }
+
+        function createFloatingImage() {
+            if (!cacyEnabled) return;
+
+            const img = document.createElement('img');
+            img.src = imageSources[Math.floor(Math.random() * imageSources.length)];
+            img.className = 'floating-image w-20 h-20 sm:w-28 sm:h-28';
+            
+            const startX = Math.random() * 100;
+            img.style.left = `${startX}vw`;
+            
+            const duration = Math.random() * 15 + 10;
+            img.style.animationDuration = `${duration}s`;
+            
+            const initialRotation = Math.random() * 360;
+            img.style.transform = `translateY(0) rotate(${initialRotation}deg)`;
+
+            img.addEventListener('animationend', () => img.remove());
+            floatingContainer.appendChild(img);
+        }
+
+        function startFloatingImageSpawner() {
+            if (!cacyEnabled) return;
+            // CHANGED: 15-25 second delay to reduce lag significantly
+            const delay = Math.random() * 10000 + 15000;
+            cacyTimeoutId = setTimeout(() => {
+                createFloatingImage();
+                startFloatingImageSpawner();
+            }, delay);
+        }
+
+        cacyToggle.addEventListener('change', (e) => {
+            cacyEnabled = e.target.checked;
+            localStorage.setItem('cacyImages', cacyEnabled);
+
+            if (cacyEnabled) {
+                startFloatingImageSpawner();
+            } else {
+                floatingContainer.innerHTML = '';
+                if (cacyTimeoutId) clearTimeout(cacyTimeoutId);
+            }
+        });
+
+        if (cacyEnabled) {
+            startFloatingImageSpawner();
+        }
+
+
+        // --- 4. GAME SEARCH (FIXED: STRICTER MATCHING) ---
         const searchInput = document.getElementById('game-search');
-        const gameLinks = document.getElementById('game-list').querySelectorAll('a');
 
         searchInput.addEventListener('input', (e) => {
-            const searchTerm = e.target.value.toLowerCase();
+            const searchTerm = e.target.value.toLowerCase().trim();
+            // Select ALL game link cards, including those in the favorites section
+            const allGameCards = document.querySelectorAll('.game-link-card');
             
-            gameLinks.forEach(link => {
+            allGameCards.forEach(link => {
+                // Get the title text (h3) and the data-title attribute
                 const title = link.querySelector('h3').textContent.toLowerCase();
-                // data-title attribute is used for more keywords (e.g., 'Slope 2' might have 'dash' or 'Dash')
                 const dataTitle = link.getAttribute('data-title').toLowerCase();
-                const description = link.textContent.toLowerCase();
-
-                // Check if the search term is in the title, data-title, or description
-                if (title.includes(searchTerm) || dataTitle.includes(searchTerm) || description.includes(searchTerm)) {
-                    link.style.display = 'block'; // Show the game card
+                
+                // STRICT CHECK: Does title or data-title contain search term?
+                // Removed description check to prevent broad matching
+                if (title.includes(searchTerm) || dataTitle.includes(searchTerm)) {
+                    link.style.display = 'block'; 
                 } else {
-                    link.style.display = 'none'; // Hide the game card
+                    link.style.display = 'none'; 
                 }
             });
         });
 
+        // --- 5. FAVORITES SYSTEM (NEW) ---
+        const favoritesSection = document.getElementById('favorites-section');
+        const favoritesContainer = document.getElementById('favorites-container');
+        // Store favorite URLs (hrefs) as unique IDs
+        let favorites = JSON.parse(localStorage.getItem('feelineFavorites')) || [];
 
-        // --- 2. Floating Background Animation (Image Spawner) ---
-        // CHANGED: Container is now a fixed background element in the body
-        const floatingContainer = document.getElementById('full-screen-floating'); 
-        const imageSources = [
-            "cacy.png",
-            "cacy2.png",
-            "cacy3.png",
-            "cacy4.png",
-            "cacy5.png", // Added another GIF for variety
-            "cacy6.png"  // Added another icon
-        ];
+        function saveFavorites() {
+            localStorage.setItem('feelineFavorites', JSON.stringify(favorites));
+        }
 
-        function createFloatingImage() {
-            const img = document.createElement('img');
-            img.src = imageSources[Math.floor(Math.random() * imageSources.length)];
-            img.className = 'floating-image w-20 h-20 sm:w-28 sm:h-28'; // Tailwind classes for sizing
+        function toggleFavorite(href, btnElement) {
+            if (favorites.includes(href)) {
+                // Remove
+                favorites = favorites.filter(fav => fav !== href);
+                btnElement.classList.remove('active');
+                btnElement.innerHTML = getStarSvg(false);
+            } else {
+                // Add
+                favorites.push(href);
+                btnElement.classList.add('active');
+                btnElement.innerHTML = getStarSvg(true);
+            }
+            saveFavorites();
+            renderFavorites();
+        }
 
-            // Random horizontal start position (0% to 100% width)
-            const startX = Math.random() * 100;
-            img.style.left = `${startX}vw`;
+        function getStarSvg(isFilled) {
+            if (isFilled) {
+                return `<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 20 20" fill="currentColor">
+  <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+</svg>`;
+            } else {
+                return `<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+  <path stroke-linecap="round" stroke-linejoin="round" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+</svg>`;
+            }
+        }
 
-            // Randomize animation duration for a staggered look (10s to 25s)
-            const duration = Math.random() * 15 + 10;
-            img.style.animationDuration = `${duration}s`;
+        function renderFavorites() {
+            favoritesContainer.innerHTML = ''; // Clear container
 
-            // Randomize initial rotation (720deg is already in CSS, this adds a random offset)
-            const initialRotation = Math.random() * 360;
-            img.style.transform = `translateY(0) rotate(${initialRotation}deg)`;
+            if (favorites.length === 0) {
+                favoritesSection.classList.add('hidden');
+                return;
+            }
+            
+            favoritesSection.classList.remove('hidden');
 
-            // Clean up the element after animation ends
-            img.addEventListener('animationend', () => {
-                img.remove();
+            favorites.forEach(href => {
+                // Find original element to clone data from
+                // We use href selector to find the exact link in the MAIN list (id=game-list)
+                const originalLink = document.querySelector(`#game-list .game-link-card[href="${href}"]`);
+                if (originalLink) {
+                    const clone = originalLink.cloneNode(true);
+                    
+                    // Remove the ID from the clone to prevent duplicate IDs
+                    if(clone.id) clone.removeAttribute('id');
+
+                    // Setup the favorite button on the clone
+                    const favBtn = clone.querySelector('.favorite-btn');
+                    favBtn.classList.add('active');
+                    favBtn.innerHTML = getStarSvg(true);
+                    
+                    // Add listener to the clone's favorite button (to unfavorite)
+                    favBtn.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        // Untoggle original as well
+                        const originalBtn = originalLink.querySelector('.favorite-btn');
+                        if (originalBtn) toggleFavorite(href, originalBtn);
+                    });
+                    
+                    // Attach game click listener to the clone (since cloneNode doesn't copy event listeners)
+                    attachGameClickListener(clone);
+                    
+                    favoritesContainer.appendChild(clone);
+                }
+            });
+        }
+
+        // Init: Add star buttons to all existing cards in the main list
+        document.querySelector('#game-list').querySelectorAll('.game-link-card').forEach(link => {
+            const href = link.getAttribute('href');
+            
+            const btn = document.createElement('div');
+            btn.className = 'favorite-btn';
+            
+            if (favorites.includes(href)) {
+                btn.classList.add('active');
+                btn.innerHTML = getStarSvg(true);
+            } else {
+                btn.innerHTML = getStarSvg(false);
+            }
+
+            btn.addEventListener('click', (e) => {
+                e.preventDefault(); // Don't follow link
+                e.stopPropagation(); // Don't bubble to card click
+                toggleFavorite(href, btn);
             });
 
-            floatingContainer.appendChild(img);
-        }
+            link.appendChild(btn);
+        });
 
-        // NEW: Function to start the staggered image spawner with slower intervals
-        function startFloatingImageSpawner() {
-            // Randomize the delay for the next image spawn (4 seconds to 8 seconds)
-            const delay = Math.random() * 4000 + 4000; 
-            
-            setTimeout(() => {
-                createFloatingImage();
-                // Call the function again to set up the next random spawn
-                startFloatingImageSpawner(); 
-            }, delay);
-        }
+        // Attach listeners to initial list
+        document.querySelector('#game-list').querySelectorAll('.game-link-card').forEach(link => {
+            attachGameClickListener(link);
+        });
 
-        // Start the whole process
-        startFloatingImageSpawner(); 
+        // Initial Render
+        renderFavorites();
 
-        // --- 3. Feeline Radio (HTML Audio Player) ---
+
+        // --- 6. Feeline Radio (HTML Audio Player) ---
         const audioPlayer = document.getElementById('audio-player');
         const playPauseButton = document.getElementById('play-pause-button');
         const playIcon = document.getElementById('play-icon');
@@ -1284,14 +1507,11 @@
             const song = playlist[currentSongIndex];
             audioPlayer.src = song.url;
             currentSongTitle.textContent = song.title;
-            // NEW: Update artist credit
             currentSongArtist.textContent = `Artist: ${song.artist}`; 
-            // Preload metadata to ensure the file is ready to play
             audioPlayer.load();
         }
 
         function playSong() {
-            // Attempt to play, handling the common browser error where user interaction is needed
             audioPlayer.play().then(() => {
                 isPlaying = true;
                 playIcon.classList.add('hidden');
@@ -1302,7 +1522,7 @@
                 console.warn("Autoplay was prevented. User needs to click play button first:", error);
                 currentSongTitle.textContent = "Click to Play!";
                 currentSongArtist.textContent = "No Artist Data";
-                pauseSong(); // Revert to initial state
+                pauseSong(); 
             });
         }
 
@@ -1343,18 +1563,15 @@
             }
         }
 
-        // Event Listeners for Music Player
         playPauseButton.addEventListener('click', togglePlayPause);
         nextButton.addEventListener('click', nextSong);
         prevButton.addEventListener('click', prevSong);
-        // Auto-play next song when current one finishes
         audioPlayer.addEventListener('ended', nextSong);
 
-        // Initialize the player
         loadSong(currentSongIndex);
 
 
-        // --- 4. Game Iframe Loader & Controls & ANIMATION LOGIC ---
+        // --- 7. Game Iframe Loader & Controls & ANIMATION LOGIC ---
 
         const mainMenu = document.getElementById('main-menu-view');
         const gameView = document.getElementById('game-view');
@@ -1370,170 +1587,132 @@
         let currentLoadedGameUrl = '';
 
         const musicPlayer = document.getElementById('music-player');
-        const themeToggleButton = document.querySelector('.theme-toggle-button');
-        const colorPickerPanel = document.querySelector('.color-picker-panel');
 
-
-        // 4.1 Handle Game Link Clicks
-        gameLinks.forEach(link => {
-            link.addEventListener('click', (e) => {
+        // Function to attach click listener to any game card (needed for favorites)
+        function attachGameClickListener(linkElement) {
+            linkElement.addEventListener('click', (e) => {
                 e.preventDefault();
 
-                const gameUrl = link.href;
-                const gameTitle = link.getAttribute('data-title');
+                const gameUrl = linkElement.getAttribute('href');
+                const gameTitle = linkElement.getAttribute('data-title');
                 
-                // HIDE the music player, but KEEP the theme toggle and color picker visible
                 musicPlayer.classList.add('hidden');
+                // Hide settings button when game starts
+                settingsButton.classList.add('hidden');
                 
-                // 1. Ensure game-view is visible (to get correct rects) but hidden from view flow
-                // This is safe because we hide the main menu later and load the iframe later.
                 gameView.classList.remove('hidden'); 
 
-                // Wait for the next frame to ensure layout is calculated before measuring
                 window.requestAnimationFrame(() => {
-                    
-                    // Get the bounding rectangle of the target game-box
                     const targetRect = gameBox.getBoundingClientRect();
-                    
-                    // Get the initial position and size of the main-menu-view
                     const initialRect = mainMenu.getBoundingClientRect();
                     
-                    // Apply initial fixed position to prevent jump
                     mainMenu.style.position = 'fixed';
                     mainMenu.style.top = `${initialRect.top}px`;
                     mainMenu.style.left = `${initialRect.left}px`;
                     mainMenu.style.width = `${initialRect.width}px`;
                     mainMenu.style.height = `${initialRect.height}px`;
                     
-                    // 2. Start the animation
-                    // Use a short delay (e.g., 10ms) to ensure the initial fixed position is applied before transition starts
                     setTimeout(() => {
                         mainMenu.classList.add('transforming'); 
                         
-                        // Apply target styles to trigger the smooth transition
                         mainMenu.style.top = `${targetRect.top}px`;
                         mainMenu.style.left = `${targetRect.left}px`;
                         mainMenu.style.width = `${targetRect.width}px`;
                         mainMenu.style.height = `${targetRect.height}px`;
                         
-                        // Apply the border/color change to match game-box style
                         const isDark = document.documentElement.classList.contains('dark');
                         const targetBorderColor = isDark ? '#ECFEFF' : '#111827';
-                        const targetBorderWidth = '12px'; // Match game-box border width
+                        const targetBorderWidth = '12px'; 
                         
                         mainMenu.style.borderColor = targetBorderColor;
                         mainMenu.style.borderWidth = targetBorderWidth;
 
                     }, 10); 
                     
-                    // 3. Wait for animation and complete transition
-                    const transitionDuration = 500; // Match the CSS transition duration (0.5s)
+                    const transitionDuration = 500;
                     setTimeout(() => {
-                        
-                        // Set the iframe source, title, and download link
                         gameIframe.src = gameUrl;
                         currentGameTitle.textContent = gameTitle;
                         downloadButton.href = gameUrl; 
                         currentLoadedGameUrl = gameUrl;
 
-                        // Hide the main menu
                         mainMenu.classList.add('hidden');
-                        
-                        // Apply background blur/dimming to body (excluding #game-view)
                         body.classList.add('game-active-bg');
 
-                        // Reset the Main Menu's state for the next use (important!)
                         mainMenu.classList.remove('transforming');
                         mainMenu.style.position = '';
                         mainMenu.style.top = '';
                         mainMenu.style.left = '';
                         mainMenu.style.width = '';
                         mainMenu.style.height = '';
-                        mainMenu.style.borderColor = ''; // Revert to CSS default
-                        mainMenu.style.borderWidth = ''; // Revert to CSS default
+                        mainMenu.style.borderColor = ''; 
+                        mainMenu.style.borderWidth = ''; 
 
-                    }, transitionDuration + 10); // A small buffer (10ms) after transition
+                    }, transitionDuration + 10); 
 
-                }); // End of requestAnimationFrame
+                }); 
                 
-                // Update document title
                 document.title = `${gameTitle} - Feeline`;
-                
             });
-        });
+        }
 
-        // 4.2 Handle Back Button Click
+        // 7.2 Handle Back Button Click
         backButton.addEventListener('click', () => {
-            // Check if we are in fullscreen mode and exit first
             if (document.fullscreenElement) {
                 document.exitFullscreen();
             }
 
-            // Remove blur/dimming effect from the body background
             body.classList.remove('game-active-bg');
-            
-            // Stop the game and clear the iframe
             gameIframe.src = '';
             currentLoadedGameUrl = '';
 
-            // Hide the game view
             gameView.classList.add('hidden');
-
-            // Show the main menu
             mainMenu.classList.remove('hidden'); 
-
-            // Restore music player
             musicPlayer.classList.remove('hidden');
             
-            // Reset document title
+            // Show settings button again
+            settingsButton.classList.remove('hidden');
+            
             document.title = 'Feeline';
         });
 
-        // 4.3 Handle Reload Button Click
+        // 7.3 Handle Reload Button Click
         reloadButton.addEventListener('click', () => {
             if (currentLoadedGameUrl) {
-                // Set the src again to force a reload
                 gameIframe.src = currentLoadedGameUrl;
             }
         });
         
-        // 4.4 Handle Fullscreen Button Click
+        // 7.4 Handle Fullscreen Button Click
         fullscreenButton.addEventListener('click', () => {
-            // Target the gameBox element for fullscreen
-            
             if (document.fullscreenElement) {
-                // Exit fullscreen
                 document.exitFullscreen();
             } else {
-                // Enter fullscreen
                 if (gameBox.requestFullscreen) {
                     gameBox.requestFullscreen();
-                } else if (gameBox.webkitRequestFullscreen) { /* Safari */
+                } else if (gameBox.webkitRequestFullscreen) {
                     gameBox.webkitRequestFullscreen();
-                } else if (gameBox.msRequestFullscreen) { /* IE11 */
+                } else if (gameBox.msRequestFullscreen) {
                     gameBox.msRequestFullscreen();
                 }
             }
         });
         
-        // 4.6 Listen for fullscreen change to update button icon (good UX)
+        // 7.6 Listen for fullscreen change
         document.addEventListener('fullscreenchange', () => {
             const isFullscreen = !!document.fullscreenElement;
             
-            // In fullscreen mode, hide the Theme Toggle and Color Picker so they don't cover the game
             if (isFullscreen) {
-                themeToggleButton.classList.add('hidden');
-                colorPickerPanel.classList.add('hidden');
+                // Ensure hidden elements stay hidden
+                settingsButton.classList.add('hidden');
+                settingsPanel.classList.add('hidden'); 
                 
-                // Icon for "Exit Fullscreen" (Shrink/Minimize)
                 fullscreenIcon.innerHTML = `<path id="minimize-path" stroke-linecap="round" stroke-linejoin="round" d="M15 17h5m0 0v5m0-5l-5-5M4 8V4m0 0h4M4 4l5 5m11-5v4m0 0h-4m4-4l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5v-4m0 4h-4m4 0l-5-5" />`;
                 fullscreenButton.title = 'Exit Fullscreen (Press ESC)';
             } else {
-                // Show them again when exiting fullscreen
-                themeToggleButton.classList.remove('hidden');
-                colorPickerPanel.classList.remove('hidden');
-
-                // Icon for "Enter Fullscreen" (Maximize)
+                // Keep settings button hidden if we are still in game view, handled by Back button logic primarily
+                // but just in case we are in game view, settings button is hidden by default there.
+                
                 fullscreenIcon.innerHTML = `<path id="maximize-path" stroke-linecap="round" stroke-linejoin="round" d="M4 8V4m0 0h4M4 4l5 5m11-5v4m0 0h-4m4-4l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5v-4m0 4h-4m4 0l-5-5" />`;
                 fullscreenButton.title = 'Enter Fullscreen';
             }
@@ -1542,31 +1721,5 @@
     </script>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
