@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>paper</title>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background-color: #000;
+        }
+        canvas {
+            display: block;
+            image-rendering: pixelated;
+        }
+        #controls {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            color: white;
+            font-family: monospace;
+            background: rgba(0,0,0,0.5);
+            padding: 10px;
+            pointer-events: none;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+
+<canvas id="ebCanvas"></canvas>
+<div id="controls">STRETCH: <span id="val">0</span></div>
+
+<script>
+    const canvas = document.getElementById('ebCanvas');
+    const ctx = canvas.getContext('2d');
+    
+    // We use a secondary canvas to store your image as a repeating tile
+    const textureCanvas = document.createElement('canvas');
+    const tCtx = textureCanvas.getContext('2d');
+    
+    let img = new Image();
+    // Using the uploaded image
+    img.src = 'Screenshot_2025-12-25_12.25.03_PM.png'; 
+    
+    let width, height;
+    let time = 0;
+    let isLoaded = false;
+
+    img.onload = () => {
+        isLoaded = true;
+        init();
+        animate();
+    };
+
+    function init() {
+        // Lower resolution internal rendering for that retro feel
+        const resolutionScale = 0.5;
+        width = Math.ceil(window.innerWidth * resolutionScale);
+        height = Math.ceil(window.innerHeight * resolutionScale);
+        
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        // Prepare the texture tile (scaled to a square)
+        textureCanvas.width = 256;
+        textureCanvas.height = 256;
+        tCtx.drawImage(img, 0, 0, 256, 256);
+    }
+
+    function animate() {
+        if (!isLoaded) return;
+        time += 0.03;
+
+        // Clear and prepare main canvas scale
+        ctx.fillStyle = '#000';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        
+        const renderScale = canvas.width / width;
+        ctx.save();
+        ctx.scale(renderScale, renderScale);
+
+        // Distortion parameters
+        const amplitude = 12 + Math.sin(time * 0.5) * 8; 
+        const frequency = 0.04;
+        const scrollSpeedY = time * 40;
+        const scrollSpeedX = time * 10;
+
+        for (let y = 0; y < height; y++) {
+            // Horizontal sine wave shift
+            const xOffset = Math.sin((y * frequency) + (time * 2)) * amplitude;
+            
+            // Source Y calculation with infinite looping (modulo 256)
+            const srcY = (y + scrollSpeedY) % 256;
+
+            // Draw the 1px slice of your image
+            ctx.drawImage(
+                textureCanvas,
+                0, srcY, 256, 1,                   // Source slice
+                xOffset - 20 + (scrollSpeedX % 50), y, // Destination X/Y
+                width + 40, 1                      // Stretch to fill
+            );
+        }
+
+        // Apply a psychedelic color cycling overlay
+        ctx.globalCompositeOperation = 'hue';
+        ctx.fillStyle = `hsl(${(time * 50) % 360}, 100%, 50%)`;
+        ctx.globalAlpha = 0.3;
+        ctx.fillRect(0, 0, width, height);
+        
+        ctx.restore();
+        document.getElementById('val').innerText = Math.round(amplitude);
+        requestAnimationFrame(animate);
+    }
+
+    window.addEventListener('resize', () => {
+        init();
+    });
+</script>
+
+</body>
+</html>
+
