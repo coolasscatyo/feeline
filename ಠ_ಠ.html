@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Feeline Experimental</title>
+    <!-- Playful fonts from original file -->
+    <link href="https://fonts.googleapis.com/css2?family=Comic+Relief&family=Kalam:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            /* Requested Background: 31R, 41G, 55B */
+            --bg-color: rgb(31, 41, 55);
+            /* Requested Text Color: 207R, 250G, 254B */
+            --text-color: rgb(207, 250, 254);
+            --font-main: 'Comic Relief', 'Kalam', 'Comic Sans MS', cursive;
+        }
+
+        * {
+            box-sizing: border-box;
+            transition: all 0.25s ease;
+            text-shadow: none !important;
+        }
+
+        body {
+            font-family: var(--font-main);
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 40px 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 50px;
+        }
+
+        h1 {
+            font-size: 3.5rem;
+            margin: 0;
+            letter-spacing: 3px;
+            font-weight: bold;
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.8;
+            margin-top: 5px;
+        }
+
+        .game-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+            gap: 20px;
+            width: 100%;
+            max-width: 1100px;
+        }
+
+        .game-card {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            background-color: transparent; /* Removed background filling */
+            color: var(--text-color);
+            text-decoration: none;
+            padding: 30px 20px;
+            border-radius: 12px;
+            /* Thin white outline */
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            font-weight: 700;
+            font-size: 1.1rem;
+        }
+
+        .game-card:hover {
+            /* Slight transparency on hover for visibility */
+            background-color: rgba(255, 255, 255, 0.05);
+            border-color: rgba(255, 255, 255, 1);
+            transform: translateY(-5px);
+            box-shadow: 0 0 15px rgba(207, 250, 254, 0.2);
+        }
+
+        .game-card:active {
+            transform: translateY(-2px);
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        footer {
+            margin-top: auto;
+            padding: 60px 0 20px 0;
+            opacity: 0.5;
+            font-size: 0.9rem;
+        }
+
+        @media (max-width: 600px) {
+            h1 { font-size: 2.2rem; }
+            .game-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Welcome to Feeline Expo!</h1>
+        <div class="subtitle">Feel that? thats feeline trying to make a slight comeback due to Both Developers having personal stuff that slows down development to everything Feeline. please please please use this im begging you</div>
+    </header>
+
+    <div class="game-grid">
+        <a href="Nubby’s Number Factory(1).html" class="game-card">Nubby’s Number Factory</a>
+        <a href="DON’T YOU LECTURE ME.html" class="game-card">DON’T YOU LECTURE ME</a>
+        <a href="Crazy Kitty 3D.html" class="game-card">Crazy Kitty 3D</a>
+        <a href="Cluster Rush.html" class="game-card">Cluster Rush</a>
+        <a href="Cuphead.html" class="game-card">Cuphead</a>
+        <a href="Death Run 3D.html" class="game-card">Death Run 3D</a>
+        <a href="Fireboy and Watergirl 2.html" class="game-card">Fireboy & Watergirl 2</a>
+        <a href="Friday Night Funkin.html" class="game-card">Friday Night Funkin</a>
+        <a href="Jelly Drift.html" class="game-card">Jelly Drift</a>
+        <a href="Jelly Mario.html" class="game-card">Jelly Mario</a>
+        <a href="Line Rider.html" class="game-card">Line Rider</a>
+        <a href="Pac Man World.html" class="game-card">Pac Man World</a>
+        <a href="Please Don’t Touch Anything.html" class="game-card">Don’t Touch Anything</a>
+        <a href="Ragdoll Archers.html" class="game-card">Ragdoll Archers</a>
+        <a href="Retro Bowl.html" class="game-card">Retro Bowl</a>
+        <a href="Retro Bowl College.html" class="game-card">Retro Bowl College</a>
+        <a href="Stickman Hook.html" class="game-card">Stickman Hook</a>
+        <a href="Tattletail.html" class="game-card">Tattletail</a>
+        <a href="That’s Not My Neighbor.html" class="game-card">That’s Not My Neighbor</a>
+        <a href="Tiny Fishing.html" class="game-card">Tiny Fishing</a>
+        <a href="Tomb Of The Mask.html" class="game-card">Tomb Of The Mask</a>
+        <a href="Vex 1.html" class="game-card">Vex 1</a>
+        <a href="Vex 2.html" class="game-card">Vex 2</a>
+        <a href="Vex 3.html" class="game-card">Vex 3</a>
+        <a href="Vex 4.html" class="game-card">Vex 4</a>
+        <a href="Vex 5.html" class="game-card">Vex 5</a>
+        <a href="Vex 6.html" class="game-card">Vex 6</a>
+        <a href="Vex 7.html" class="game-card">Vex 7</a>
+        <a href="Vex 8.html" class="game-card">Vex 8</a>
+        <a href="clocarinaoftime.html" class="game-card">Ocarina of Time</a>
+        <a href="clsupermario64ds.html" class="game-card">Super Mario 64 DS</a>
+        <a href="clsupermarioallstars.html" class="game-card">Super Mario Allstars</a>
+        <a href="clsupermarioworld2.html" class="game-card">Super Mario World 2</a>
+        <a href="clsuperscribblenauts.html" class="game-card">Super Scribblenauts</a>
+        <a href="cluncannycatgolf.html" class="game-card">Uncanny Cat Golf</a>
+        <a href="clunfairmarioworkquestion-mark.html" class="game-card">Unfair Mario</a>
+        <a href="clwariowarediy.html" class="game-card">WarioWare DIY</a>
+        <a href="mariobuilder64.html" class="game-card">Mario Builder 64</a>
+    </div>
+
+    <footer>
+        &copy; Feeline Experimental
+    </footer>
+
+</body>
+</html>
+
