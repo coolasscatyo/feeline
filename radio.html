@@ -12,6 +12,7 @@
     <style>
         :root {
             --bg-color: #ECFEFF;
+            --bg-color-end: #dbeafe;
             --text-color: #111928;
             --border-width: 4px;
         }
@@ -25,8 +26,9 @@
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            background: linear-gradient(135deg, #ECFEFF 0%, #dbeafe 100%);
+            background: linear-gradient(135deg, var(--bg-color) 0%, var(--bg-color-end) 100%);
             color: var(--text-color);
+            transition: background 0.3s ease;
         }
 
         .radio-card {
@@ -41,6 +43,7 @@
             text-align: center;
             position: relative;
             box-shadow: 8px 8px 0px rgba(0,0,0,0.1);
+            color: var(--text-color);
         }
 
         .circular-btn {
@@ -157,6 +160,7 @@
             white-space: nowrap;
             cursor: pointer;
             transition: all 0.2s;
+            color: var(--text-color);
         }
 
         .sound-btn:hover {
@@ -169,6 +173,47 @@
             background: var(--text-color);
             color: white;
             box-shadow: 0 0 10px rgba(0,0,0,0.2);
+        }
+
+        /* Settings Positioning */
+        .settings-menu {
+            display: none;
+            position: absolute;
+            top: 60px;
+            right: 0;
+            background: white;
+            border: var(--border-width) solid var(--text-color);
+            padding: 15px;
+            border-radius: 12px;
+            box-shadow: 8px 8px 0px rgba(0,0,0,0.1);
+            min-width: 200px;
+            z-index: 100;
+        }
+
+        .settings-menu.open {
+            display: block;
+        }
+
+        .setting-item {
+            margin-bottom: 12px;
+            text-align: left;
+        }
+
+        .setting-item label {
+            display: block;
+            font-size: 12px;
+            font-weight: bold;
+            text-transform: uppercase;
+            margin-bottom: 4px;
+            color: #111928; /* Default for readability in menu */
+        }
+
+        .setting-item input[type="color"] {
+            width: 100%;
+            height: 30px;
+            border: 2px solid #111928;
+            cursor: pointer;
+            background: none;
         }
 
         svg { display: block; pointer-events: none; }
@@ -186,7 +231,6 @@
         <div class="relative flex items-center justify-center mb-10 min-h-[50px]">
             <div class="absolute left-0 flex gap-3">
                 <button id="refresh-btn" class="circular-btn" title="Clear Playlist">
-                    <!-- Simple Refresh Icon -->
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M23 4v6h-6"></path>
                         <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
@@ -203,9 +247,8 @@
             
             <h2 class="text-4xl font-bold tracking-tight select-none px-4">Feeline Radio +</h2>
             
-            <div class="absolute right-0">
+            <div class="absolute right-0 flex gap-3">
                 <button id="shuffle-btn" class="circular-btn" title="Shuffle Mode">
-                    <!-- Simple Shuffle Icon -->
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
                         <polyline points="16 3 21 3 21 8"></polyline>
                         <line x1="4" y1="20" x2="21" y2="3"></line>
@@ -214,6 +257,27 @@
                         <line x1="4" y1="4" x2="9" y2="9"></line>
                     </svg>
                 </button>
+                
+                <!-- Settings Button Next to Shuffle -->
+                <div class="relative">
+                    <button id="settings-toggle-btn" class="circular-btn" title="Appearance Settings">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="3"></circle>
+                            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33 1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82 1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                        </svg>
+                    </button>
+                    <div id="settings-menu" class="settings-menu">
+                        <div class="setting-item">
+                            <label>Background Color</label>
+                            <input type="color" id="bg-color-picker" value="#ECFEFF">
+                        </div>
+                        <div class="setting-item">
+                            <label>Text/Border Color</label>
+                            <input type="color" id="text-color-picker" value="#111928">
+                        </div>
+                        <button id="reset-colors" class="text-[10px] font-bold uppercase tracking-widest text-[#111928] opacity-50 hover:opacity-100 mt-2 block w-full text-center">Reset to Default</button>
+                    </div>
+                </div>
             </div>
         </div>
         
@@ -260,7 +324,7 @@
 
         <!-- File Upload -->
         <div class="flex flex-col items-center mb-8">
-            <label for="file-input" class="cursor-pointer bg-[var(--text-color)] text-white py-4 px-12 rounded-full text-sm font-bold hover:opacity-90 transition-all uppercase tracking-wider border-[var(--border-width)] border-[var(--text-color)] shadow-lg active:scale-95">
+            <label for="file-input" id="upload-label" class="cursor-pointer bg-[var(--text-color)] text-white py-4 px-12 rounded-full text-sm font-bold hover:opacity-90 transition-all uppercase tracking-wider border-[var(--border-width)] border-[var(--text-color)] shadow-lg active:scale-95">
                 Upload Music / Zip
             </label>
             <input type="file" id="file-input" accept="audio/*, .zip, application/zip" multiple>
@@ -297,7 +361,57 @@
         const loader = document.getElementById('loader');
         const loaderText = document.getElementById('loader-text');
         const soundboard = document.getElementById('soundboard');
+
+        // Settings Logic
+        const settingsToggleBtn = document.getElementById('settings-toggle-btn');
+        const settingsMenu = document.getElementById('settings-menu');
+        const bgColorPicker = document.getElementById('bg-color-picker');
+        const textColorPicker = document.getElementById('text-color-picker');
+        const resetColorsBtn = document.getElementById('reset-colors');
         
+        settingsToggleBtn.onclick = (e) => {
+            e.stopPropagation();
+            settingsMenu.classList.toggle('open');
+        };
+
+        window.addEventListener('click', () => settingsMenu.classList.remove('open'));
+        settingsMenu.onclick = (e) => e.stopPropagation();
+
+        function updateColors() {
+            const root = document.documentElement;
+            const bg = bgColorPicker.value;
+            const text = textColorPicker.value;
+            
+            root.style.setProperty('--bg-color', bg);
+            
+            // Helper to darken color for the gradient background
+            const darken = (hex, percent) => {
+                let num = parseInt(hex.replace("#",""),16),
+                amt = Math.round(2.55 * percent),
+                R = (num >> 16) - amt,
+                G = (num >> 8 & 0x00FF) - amt,
+                B = (num & 0x0000FF) - amt;
+                return "#" + (0x1000000 + (R<255?R<0?0:R:255)*0x10000 + (G<255?G<0?0:G:255)*0x100 + (B<255?B<0?0:B:255)).toString(16).slice(1);
+            };
+
+            root.style.setProperty('--bg-color-end', darken(bg, 8));
+            root.style.setProperty('--text-color', text);
+            
+            // Update button label background manually for consistency
+            document.getElementById('upload-label').style.backgroundColor = text;
+            document.getElementById('upload-label').style.borderColor = text;
+        }
+
+        bgColorPicker.addEventListener('input', updateColors);
+        textColorPicker.addEventListener('input', updateColors);
+
+        resetColorsBtn.onclick = () => {
+            bgColorPicker.value = "#ECFEFF";
+            textColorPicker.value = "#111928";
+            updateColors();
+        };
+
+        // Playlist & Player State
         let playlist = []; 
         let currentIndex = -1;
         let isShuffle = false;
