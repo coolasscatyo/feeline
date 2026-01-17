@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Feeline Radio +</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Comic+Relief&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Kalam:wght@400;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --bg-color: #ECFEFF;
+            --text-color: #111928;
+            --border-width: 4px;
+        }
+
+        body {
+            font-family: 'Comic Relief', 'Kalam', 'Comic Sans MS', 'Comic Sans', cursive;
+            margin: 0;
+            padding: 2rem 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(135deg, #ECFEFF 0%, #dbeafe 100%);
+            color: var(--text-color);
+        }
+
+        .radio-card {
+            background: rgba(255, 255, 255, 0.25);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-radius: 2.5rem;
+            padding: 2rem 3rem;
+            border: var(--border-width) solid var(--text-color);
+            width: 600px;
+            max-width: 95vw;
+            text-align: center;
+            position: relative;
+            box-shadow: 8px 8px 0px rgba(0,0,0,0.1);
+        }
+
+        .circular-btn {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.1s, background-color 0.2s;
+            border: var(--border-width) solid var(--text-color);
+            background: rgba(255, 255, 255, 0.9);
+            color: var(--text-color);
+            flex-shrink: 0;
+            cursor: pointer;
+        }
+
+        .circular-btn:hover {
+            background-color: #ffffff;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 0 rgba(0,0,0,0.1);
+        }
+
+        .circular-btn:active {
+            transform: translateY(0);
+            background-color: #e5e7eb;
+            box-shadow: none;
+        }
+
+        .play-btn {
+            width: 70px;
+            height: 70px;
+        }
+
+        .btn-active {
+            background-color: var(--text-color) !important;
+            color: white !important; 
+        }
+
+        #file-input {
+            display: none;
+        }
+
+        input[type=range] {
+            -webkit-appearance: none;
+            width: 100%;
+            background: transparent;
+        }
+
+        input[type=range]::-webkit-slider-runnable-track {
+            width: 100%;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.5);
+            border-radius: 4px;
+            border: var(--border-width) solid var(--text-color);
+        }
+
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 20px;
+            width: 20px;
+            border-radius: 50%;
+            background: var(--text-color);
+            cursor: pointer;
+            margin-top: -8px; 
+            border: 2px solid white;
+        }
+
+        #loader {
+            position: absolute;
+            inset: 0;
+            background: rgba(255, 255, 255, 0.6);
+            backdrop-filter: blur(5px);
+            border-radius: 2rem;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 20;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: var(--border-width) solid rgba(255,255,255,0.5);
+            border-top: var(--border-width) solid var(--text-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        /* Soundboard styling */
+        .soundboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            gap: 10px;
+            max-height: 200px;
+            overflow-y: auto;
+            padding: 10px;
+            margin-top: 15px;
+            border-top: 2px dashed var(--text-color);
+        }
+
+        .sound-btn {
+            background: rgba(255, 255, 255, 0.6);
+            border: 2px solid var(--text-color);
+            border-radius: 12px;
+            padding: 8px 4px;
+            font-size: 10px;
+            font-weight: bold;
+            text-transform: uppercase;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .sound-btn:hover {
+            background: var(--text-color);
+            color: white;
+            transform: scale(1.05);
+        }
+
+        .sound-btn.playing {
+            background: var(--text-color);
+            color: white;
+            box-shadow: 0 0 10px rgba(0,0,0,0.2);
+        }
+
+        svg { display: block; pointer-events: none; }
+    </style>
+</head>
+<body>
+
+    <div class="radio-card">
+        <div id="loader">
+            <div class="spinner mb-2"></div>
+            <span id="loader-text" class="text-xs font-bold uppercase tracking-widest">Processing...</span>
+        </div>
+
+        <!-- Header -->
+        <div class="flex justify-between items-center mb-6">
+            <div class="flex gap-3">
+                <button id="refresh-btn" class="circular-btn" title="Clear Playlist">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 256 256"><path d="M224,128a96,96,0,0,1-94.58,96H128A95.93,95.93,0,0,1,36.76,150.11a8,8,0,0,1,14.5-6.78A80,80,0,1,0,128,48a79.39,79.39,0,0,0-56.57,23.43L48,94.83V64a8,8,0,0,1,16,0v48a8,8,0,0,1-8,8H8a8,8,0,0,1,0-16H34.34l23.23-23.23A96,96,0,0,1,224,128Z"></path></svg>
+                </button>
+                <button id="save-btn" class="circular-btn" title="Save Radio (.zip)">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 256 256"><path d="M224,94V216a8,8,0,0,1-8,8H176a8,8,0,0,1-8-8V152a8,8,0,0,0-8-8H96a8,8,0,0,0-8,8v64a8,8,0,0,1-8,8H40a8,8,0,0,1-8-8V40A8,8,0,0,1,40,32h80V96a8,8,0,0,0,8,8h56A8,8,0,0,0,192,96V45.34ZM152,48V88h48ZM208,40h0Z"></path></svg>
+                </button>
+            </div>
+            
+            <h2 class="text-3xl font-bold uppercase tracking-tight select-none">Feeline Radio +</h2>
+            
+            <button id="shuffle-btn" class="circular-btn" title="Shuffle Mode">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 256 256"><path d="M216,48V88a8,8,0,0,1-16,0V67.31l-40.45,40.46a8,8,0,1,1-11.32-11.32L188.69,56H168a8,8,0,0,1,0-16h40A8,8,0,0,1,216,48ZM107.77,148.23a8,8,0,0,0-11.32,0L34.34,210.34a8,8,0,0,0,11.32,11.32l62.11-62.11A8,8,0,0,0,107.77,148.23Zm100.23,43.77V168a8,8,0,0,0-16,0v20.69l-51.06-51.06a8,8,0,0,0-11.32,11.32l51.06,51.06H160a8,8,0,0,0,0,16h40a8,8,0,0,0,8-8V192Zm-60-84.46L188.69,67.31V88a8,8,0,0,0,16,0V48a8,8,0,0,0-8-8H156.69a8,8,0,0,0,0,16H177.37L136.92,96.45a8,8,0,1,0,11.32,11.32Z"></path></svg>
+            </button>
+        </div>
+        
+        <!-- Track Info -->
+        <div id="track-display" class="mb-4 min-h-[90px] flex flex-col items-center justify-center">
+            <div class="flex items-center gap-3 group cursor-pointer">
+                <span id="current-track-name" class="text-2xl font-bold truncate max-w-[400px]">No tracks loaded</span>
+                <button id="rename-btn" class="hidden group-hover:block opacity-60 hover:opacity-100">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor" viewBox="0 0 256 256"><path d="M227.31,73.37,182.63,28.68a16,16,0,0,0-22.63,0L36.69,152A15.86,15.86,0,0,0,32,163.31V208a16,16,0,0,0,16,16H92.69A15.86,15.86,0,0,0,104,219.31L227.31,96a16,16,0,0,0,0-22.63ZM92.69,208H48V163.31l88-88L180.69,120ZM192,108.68,147.31,64l24-24L216,84.68Z"></path></svg>
+                </button>
+            </div>
+            <div id="track-counter" class="text-sm font-bold opacity-60 uppercase tracking-widest mt-1">0/0</div>
+            <div id="time-display" class="text-md font-mono mt-1 font-bold">0:00 / 0:00</div>
+        </div>
+
+        <!-- Progress -->
+        <div class="px-2 mb-8">
+            <input type="range" id="seek-slider" value="0" step="0.1">
+        </div>
+
+        <!-- Controls -->
+        <div class="flex justify-center items-center gap-6 mb-8">
+            <button id="skip-back-btn" class="circular-btn" title="Back 30s">
+                <span class="text-xs font-bold">-30</span>
+            </button>
+            <button id="prev-btn" class="circular-btn" title="Previous">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 256 256"><path d="M208,40V216a8,8,0,0,1-12.48,6.64L48,136.64a8,8,0,0,1,0-13.28L195.52,33.36A8,8,0,0,1,208,40Z"></path></svg>
+            </button>
+            <button id="play-pause-btn" class="circular-btn play-btn" title="Play/Pause">
+                <svg id="play-icon" xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" viewBox="0 0 256 256"><path d="M240,128a15.89,15.89,0,0,1-8.16,13.92l-144,83.2A15.89,15.89,0,0,1,64,211.2V44.8A15.89,15.89,0,0,1,87.84,30.88l144,83.2A15.89,15.89,0,0,1,240,128Z"></path></svg>
+            </button>
+            <button id="next-btn" class="circular-btn" title="Next">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 256 256"><path d="M48,40V216a8,8,0,0,0,12.48,6.64L208,136.64a8,8,0,0,0,0-13.28L60.48,33.36A8,8,0,0,0,48,40Z"></path></svg>
+            </button>
+            <button id="skip-forward-btn" class="circular-btn" title="Forward 30s">
+                <span class="text-xs font-bold">+30</span>
+            </button>
+        </div>
+
+        <!-- File Upload -->
+        <div class="flex flex-col items-center mb-6">
+            <label for="file-input" class="cursor-pointer bg-[var(--text-color)] text-white py-4 px-12 rounded-full text-sm font-bold hover:opacity-90 transition-all uppercase tracking-wider border-[var(--border-width)] border-[var(--text-color)] shadow-lg active:scale-95">
+                Upload Music / Zip
+            </label>
+            <input type="file" id="file-input" accept="audio/*, .zip, application/zip" multiple>
+        </div>
+
+        <!-- Soundboard Section -->
+        <div class="text-left">
+            <h3 class="text-xs font-bold uppercase tracking-widest opacity-50 mb-2">Song Soundboard</h3>
+            <div id="soundboard" class="soundboard-grid">
+                <!-- Dynamic Buttons -->
+            </div>
+        </div>
+    </div>
+
+    <audio id="radio-player"></audio>
+
+    <script>
+        const audio = document.getElementById('radio-player');
+        const playPauseBtn = document.getElementById('play-pause-btn');
+        const playIcon = document.getElementById('play-icon');
+        const nextBtn = document.getElementById('next-btn');
+        const prevBtn = document.getElementById('prev-btn');
+        const skipBackBtn = document.getElementById('skip-back-btn');
+        const skipForwardBtn = document.getElementById('skip-forward-btn');
+        const shuffleBtn = document.getElementById('shuffle-btn');
+        const refreshBtn = document.getElementById('refresh-btn');
+        const saveBtn = document.getElementById('save-btn');
+        const fileInput = document.getElementById('file-input');
+        const seekSlider = document.getElementById('seek-slider');
+        const timeDisplay = document.getElementById('time-display');
+        const trackNameDisplay = document.getElementById('current-track-name');
+        const trackCounterDisplay = document.getElementById('track-counter');
+        const renameBtn = document.getElementById('rename-btn');
+        const loader = document.getElementById('loader');
+        const loaderText = document.getElementById('loader-text');
+        const soundboard = document.getElementById('soundboard');
+        
+        let playlist = []; 
+        let currentIndex = -1;
+        let isShuffle = false;
+
+        const PLAY_PATH = `<path d="M240,128a15.89,15.89,0,0,1-8.16,13.92l-144,83.2A15.89,15.89,0,0,1,64,211.2V44.8A15.89,15.89,0,0,1,87.84,30.88l144,83.2A15.89,15.89,0,0,1,240,128Z"></path>`;
+        const PAUSE_PATH = `<path d="M200,48V208a16,16,0,0,1-16,16H152a16,16,0,0,1-16-16V48a16,16,0,0,1,16-16h32A16,16,0,0,1,200,48ZM104,32H72A16,16,0,0,0,56,48V208a16,16,0,0,0,16,16h32a16,16,0,0,0,16-16V48A16,16,0,0,0,104,32Z"></path>`;
+
+        fileInput.addEventListener('change', async (e) => {
+            const files = Array.from(e.target.files);
+            if (files.length === 0) return;
+            showLoader('Loading Tracks...');
+            try {
+                for (const file of files) {
+                    if (file.name.endsWith('.zip') || file.type === 'application/zip') {
+                        await handleZipUpload(file);
+                    } else if (file.type.startsWith('audio/')) {
+                        playlist.push({
+                            name: file.name.replace(/\.[^/.]+$/, ""),
+                            src: URL.createObjectURL(file),
+                            file: file 
+                        });
+                    }
+                }
+                if (currentIndex === -1 && playlist.length > 0) {
+                    currentIndex = 0;
+                    loadTrack(currentIndex);
+                } else {
+                    updateCounter();
+                }
+                renderSoundboard();
+            } catch (err) {
+                console.error(err);
+            } finally {
+                hideLoader();
+                fileInput.value = '';
+            }
+        });
+
+        function renderSoundboard() {
+            soundboard.innerHTML = '';
+            playlist.forEach((track, index) => {
+                const btn = document.createElement('button');
+                btn.className = 'sound-btn';
+                if (index === currentIndex) btn.classList.add('playing');
+                btn.innerText = track.name;
+                btn.title = track.name;
+                btn.onclick = () => {
+                    currentIndex = index;
+                    loadTrack(currentIndex);
+                    audio.play();
+                    playIcon.innerHTML = PAUSE_PATH;
+                    renderSoundboard();
+                };
+                soundboard.appendChild(btn);
+            });
+        }
+
+        saveBtn.addEventListener('click', async () => {
+            if (playlist.length === 0) return;
+            showLoader('Packing Zip...');
+            const zip = new JSZip();
+            const manifest = [];
+            playlist.forEach((track, index) => {
+                const extension = track.file.name.split('.').pop() || 'mp3';
+                const fileName = `track_${index}.${extension}`;
+                zip.file(fileName, track.file);
+                manifest.push({ originalName: track.name, fileName: fileName });
+            });
+            zip.file("manifest.json", JSON.stringify(manifest));
+            try {
+                const content = await zip.generateAsync({type:"blob"});
+                const link = document.createElement("a");
+                link.href = URL.createObjectURL(content);
+                link.download = "FeelineRadio.zip";
+                link.click();
+            } finally {
+                hideLoader();
+            }
+        });
+
+        async function handleZipUpload(zipFile) {
+            const zip = new JSZip();
+            const contents = await zip.loadAsync(zipFile);
+            if (!contents.files["manifest.json"]) return;
+            const manifestData = await contents.files["manifest.json"].async("string");
+            const manifest = JSON.parse(manifestData);
+            for (const item of manifest) {
+                if (contents.files[item.fileName]) {
+                    const fileData = await contents.files[item.fileName].async("blob");
+                    const newFile = new File([fileData], item.fileName, { type: "audio/mpeg" }); 
+                    playlist.push({
+                        name: item.originalName,
+                        src: URL.createObjectURL(newFile),
+                        file: newFile
+                    });
+                }
+            }
+        }
+
+        function showLoader(text) {
+            loader.style.display = 'flex';
+            loaderText.innerText = text;
+        }
+
+        function hideLoader() { loader.style.display = 'none'; }
+
+        function formatTime(secs) {
+            const min = Math.floor(secs / 60);
+            const sec = Math.floor(secs % 60);
+            return `${min}:${sec < 10 ? '0' : ''}${sec}`;
+        }
+
+        function updateCounter() {
+            trackCounterDisplay.innerText = playlist.length === 0 ? "0/0" : `${currentIndex + 1}/${playlist.length}`;
+        }
+
+        function loadTrack(index) {
+            if (index < 0 || index >= playlist.length) return;
+            audio.src = playlist[index].src;
+            trackNameDisplay.innerText = playlist[index].name;
+            renameBtn.classList.remove('hidden');
+            updateCounter();
+            audio.load();
+            renderSoundboard();
+        }
+
+        playPauseBtn.addEventListener('click', () => {
+            if (playlist.length === 0) return;
+            if (audio.paused) {
+                audio.play();
+                playIcon.innerHTML = PAUSE_PATH;
+            } else {
+                audio.pause();
+                playIcon.innerHTML = PLAY_PATH;
+            }
+        });
+
+        nextBtn.addEventListener('click', () => {
+            if (playlist.length === 0) return;
+            currentIndex = isShuffle ? Math.floor(Math.random() * playlist.length) : (currentIndex + 1) % playlist.length;
+            loadTrack(currentIndex);
+            audio.play();
+            playIcon.innerHTML = PAUSE_PATH;
+        });
+
+        prevBtn.addEventListener('click', () => {
+            if (playlist.length === 0) return;
+            currentIndex = (currentIndex - 1 + playlist.length) % playlist.length;
+            loadTrack(currentIndex);
+            audio.play();
+            playIcon.innerHTML = PAUSE_PATH;
+        });
+
+        skipBackBtn.addEventListener('click', () => audio.currentTime -= 30);
+        skipForwardBtn.addEventListener('click', () => audio.currentTime += 30);
+        
+        shuffleBtn.addEventListener('click', () => {
+            isShuffle = !isShuffle;
+            shuffleBtn.classList.toggle('btn-active', isShuffle);
+        });
+
+        refreshBtn.addEventListener('click', () => {
+            playlist.forEach(p => URL.revokeObjectURL(p.src));
+            playlist = [];
+            currentIndex = -1;
+            audio.pause(); audio.src = "";
+            trackNameDisplay.innerText = "No tracks loaded";
+            trackCounterDisplay.innerText = "0/0";
+            timeDisplay.innerText = "0:00 / 0:00";
+            seekSlider.value = 0;
+            renameBtn.classList.add('hidden');
+            playIcon.innerHTML = PLAY_PATH;
+            renderSoundboard();
+        });
+
+        audio.addEventListener('timeupdate', () => {
+            if (!isNaN(audio.duration)) {
+                seekSlider.max = audio.duration;
+                seekSlider.value = audio.currentTime;
+                timeDisplay.innerText = `${formatTime(audio.currentTime)} / ${formatTime(audio.duration)}`;
+            }
+        });
+
+        seekSlider.addEventListener('input', () => audio.currentTime = seekSlider.value);
+
+        renameBtn.addEventListener('click', () => {
+            if (currentIndex === -1) return;
+            const newName = prompt("Rename track:", playlist[currentIndex].name);
+            if (newName) {
+                playlist[currentIndex].name = newName;
+                trackNameDisplay.innerText = newName;
+                renderSoundboard();
+            }
+        });
+
+        audio.addEventListener('ended', () => nextBtn.click());
+    </script>
+</body>
+</html>
+
