@@ -37,7 +37,7 @@
             padding: 2rem 3rem;
             border: var(--border-width) solid var(--text-color);
             width: 1200px;
-            max-width: 300vw;
+            max-width: 95vw;
             text-align: center;
             position: relative;
             box-shadow: 8px 8px 0px rgba(0,0,0,0.1);
@@ -133,7 +133,6 @@
 
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-        /* Soundboard styling */
         .soundboard-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
@@ -184,29 +183,49 @@
         </div>
 
         <!-- Header -->
-        <div class="flex justify-between items-center mb-6">
-            <div class="flex gap-3">
+        <div class="relative flex items-center justify-center mb-10 min-h-[50px]">
+            <div class="absolute left-0 flex gap-3">
                 <button id="refresh-btn" class="circular-btn" title="Clear Playlist">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 256 256"><path d="M224,128a96,96,0,0,1-94.58,96H128A95.93,95.93,0,0,1,36.76,150.11a8,8,0,0,1,14.5-6.78A80,80,0,1,0,128,48a79.39,79.39,0,0,0-56.57,23.43L48,94.83V64a8,8,0,0,1,16,0v48a8,8,0,0,1-8,8H8a8,8,0,0,1,0-16H34.34l23.23-23.23A96,96,0,0,1,224,128Z"></path></svg>
+                    <!-- Simple Refresh Icon -->
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M23 4v6h-6"></path>
+                        <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+                    </svg>
                 </button>
                 <button id="save-btn" class="circular-btn" title="Save Radio (.zip)">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 256 256"><path d="M224,94V216a8,8,0,0,1-8,8H176a8,8,0,0,1-8-8V152a8,8,0,0,0-8-8H96a8,8,0,0,0-8,8v64a8,8,0,0,1-8,8H40a8,8,0,0,1-8-8V40A8,8,0,0,1,40,32h80V96a8,8,0,0,0,8,8h56A8,8,0,0,0,192,96V45.34ZM152,48V88h48ZM208,40h0Z"></path></svg>
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                        <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                        <polyline points="7 3 7 8 15 8"></polyline>
+                    </svg>
                 </button>
             </div>
             
-            <h2 class="text-3xl font-bold tracking-tight select-none">Feeline Radio +</h2>
+            <h2 class="text-4xl font-bold tracking-tight select-none px-4">Feeline Radio +</h2>
             
-            <button id="shuffle-btn" class="circular-btn" title="Shuffle Mode">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 256 256"><path d="M216,48V88a8,8,0,0,1-16,0V67.31l-40.45,40.46a8,8,0,1,1-11.32-11.32L188.69,56H168a8,8,0,0,1,0-16h40A8,8,0,0,1,216,48ZM107.77,148.23a8,8,0,0,0-11.32,0L34.34,210.34a8,8,0,0,0,11.32,11.32l62.11-62.11A8,8,0,0,0,107.77,148.23Zm100.23,43.77V168a8,8,0,0,0-16,0v20.69l-51.06-51.06a8,8,0,0,0-11.32,11.32l51.06,51.06H160a8,8,0,0,0,0,16h40a8,8,0,0,0,8-8V192Zm-60-84.46L188.69,67.31V88a8,8,0,0,0,16,0V48a8,8,0,0,0-8-8H156.69a8,8,0,0,0,0,16H177.37L136.92,96.45a8,8,0,1,0,11.32,11.32Z"></path></svg>
-            </button>
+            <div class="absolute right-0">
+                <button id="shuffle-btn" class="circular-btn" title="Shuffle Mode">
+                    <!-- Simple Shuffle Icon -->
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="16 3 21 3 21 8"></polyline>
+                        <line x1="4" y1="20" x2="21" y2="3"></line>
+                        <polyline points="21 16 21 21 16 21"></polyline>
+                        <line x1="15" y1="15" x2="21" y2="21"></line>
+                        <line x1="4" y1="4" x2="9" y2="9"></line>
+                    </svg>
+                </button>
+            </div>
         </div>
         
         <!-- Track Info -->
-        <div id="track-display" class="mb-4 min-h-[90px] flex flex-col items-center justify-center">
+        <div id="track-display" class="mb-6 min-h-[90px] flex flex-col items-center justify-center">
             <div class="flex items-center gap-3 group cursor-pointer">
-                <span id="current-track-name" class="text-2xl font-bold truncate max-w-[300px]">No tracks loaded</span>
+                <span id="current-track-name" class="text-2xl font-bold truncate max-w-[500px]">No tracks loaded</span>
                 <button id="rename-btn" class="hidden group-hover:block opacity-60 hover:opacity-100">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor" viewBox="0 0 256 256"><path d="M227.31,73.37,182.63,28.68a16,16,0,0,0-22.63,0L36.69,152A15.86,15.86,0,0,0,32,163.31V208a16,16,0,0,0,16,16H92.69A15.86,15.86,0,0,0,104,219.31L227.31,96a16,16,0,0,0,0-22.63ZM92.69,208H48V163.31l88-88L180.69,120ZM192,108.68,147.31,64l24-24L216,84.68Z"></path></svg>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                    </svg>
                 </button>
             </div>
             <div id="track-counter" class="text-sm font-bold opacity-60 uppercase tracking-widest mt-1">0/0</div>
@@ -224,13 +243,15 @@
                 <span class="text-xs font-bold">-30</span>
             </button>
             <button id="prev-btn" class="circular-btn" title="Previous">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 256 256"><path d="M208,40V216a8,8,0,0,1-12.48,6.64L48,136.64a8,8,0,0,1,0-13.28L195.52,33.36A8,8,0,0,1,208,40Z"></path></svg>
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polygon points="19 20 9 12 19 4 19 20"></polygon><line x1="5" y1="19" x2="5" y2="5"></line></svg>
             </button>
             <button id="play-pause-btn" class="circular-btn play-btn" title="Play/Pause">
-                <svg id="play-icon" xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" viewBox="0 0 256 256"><path d="M240,128a15.89,15.89,0,0,1-8.16,13.92l-144,83.2A15.89,15.89,0,0,1,64,211.2V44.8A15.89,15.89,0,0,1,87.84,30.88l144,83.2A15.89,15.89,0,0,1,240,128Z"></path></svg>
+                <div id="play-icon-container">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                </div>
             </button>
             <button id="next-btn" class="circular-btn" title="Next">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 256 256"><path d="M48,40V216a8,8,0,0,0,12.48,6.64L208,136.64a8,8,0,0,0,0-13.28L60.48,33.36A8,8,0,0,0,48,40Z"></path></svg>
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 4 15 12 5 20 5 4"></polygon><line x1="19" y1="5" x2="19" y2="19"></line></svg>
             </button>
             <button id="skip-forward-btn" class="circular-btn" title="Forward 30s">
                 <span class="text-xs font-bold">+30</span>
@@ -238,7 +259,7 @@
         </div>
 
         <!-- File Upload -->
-        <div class="flex flex-col items-center mb-6">
+        <div class="flex flex-col items-center mb-8">
             <label for="file-input" class="cursor-pointer bg-[var(--text-color)] text-white py-4 px-12 rounded-full text-sm font-bold hover:opacity-90 transition-all uppercase tracking-wider border-[var(--border-width)] border-[var(--text-color)] shadow-lg active:scale-95">
                 Upload Music / Zip
             </label>
@@ -259,7 +280,7 @@
     <script>
         const audio = document.getElementById('radio-player');
         const playPauseBtn = document.getElementById('play-pause-btn');
-        const playIcon = document.getElementById('play-icon');
+        const playIconContainer = document.getElementById('play-icon-container');
         const nextBtn = document.getElementById('next-btn');
         const prevBtn = document.getElementById('prev-btn');
         const skipBackBtn = document.getElementById('skip-back-btn');
@@ -281,8 +302,8 @@
         let currentIndex = -1;
         let isShuffle = false;
 
-        const PLAY_PATH = `<path d="M240,128a15.89,15.89,0,0,1-8.16,13.92l-144,83.2A15.89,15.89,0,0,1,64,211.2V44.8A15.89,15.89,0,0,1,87.84,30.88l144,83.2A15.89,15.89,0,0,1,240,128Z"></path>`;
-        const PAUSE_PATH = `<path d="M200,48V208a16,16,0,0,1-16,16H152a16,16,0,0,1-16-16V48a16,16,0,0,1,16-16h32A16,16,0,0,1,200,48ZM104,32H72A16,16,0,0,0,56,48V208a16,16,0,0,0,16,16h32a16,16,0,0,0,16-16V48A16,16,0,0,0,104,32Z"></path>`;
+        const PLAY_SVG = `<svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>`;
+        const PAUSE_SVG = `<svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg>`;
 
         fileInput.addEventListener('change', async (e) => {
             const files = Array.from(e.target.files);
@@ -327,7 +348,7 @@
                     currentIndex = index;
                     loadTrack(currentIndex);
                     audio.play();
-                    playIcon.innerHTML = PAUSE_PATH;
+                    playIconContainer.innerHTML = PAUSE_SVG;
                     renderSoundboard();
                 };
                 soundboard.appendChild(btn);
@@ -407,10 +428,10 @@
             if (playlist.length === 0) return;
             if (audio.paused) {
                 audio.play();
-                playIcon.innerHTML = PAUSE_PATH;
+                playIconContainer.innerHTML = PAUSE_SVG;
             } else {
                 audio.pause();
-                playIcon.innerHTML = PLAY_PATH;
+                playIconContainer.innerHTML = PLAY_SVG;
             }
         });
 
@@ -419,7 +440,7 @@
             currentIndex = isShuffle ? Math.floor(Math.random() * playlist.length) : (currentIndex + 1) % playlist.length;
             loadTrack(currentIndex);
             audio.play();
-            playIcon.innerHTML = PAUSE_PATH;
+            playIconContainer.innerHTML = PAUSE_SVG;
         });
 
         prevBtn.addEventListener('click', () => {
@@ -427,7 +448,7 @@
             currentIndex = (currentIndex - 1 + playlist.length) % playlist.length;
             loadTrack(currentIndex);
             audio.play();
-            playIcon.innerHTML = PAUSE_PATH;
+            playIconContainer.innerHTML = PAUSE_SVG;
         });
 
         skipBackBtn.addEventListener('click', () => audio.currentTime -= 30);
@@ -448,7 +469,7 @@
             timeDisplay.innerText = "0:00 / 0:00";
             seekSlider.value = 0;
             renameBtn.classList.add('hidden');
-            playIcon.innerHTML = PLAY_PATH;
+            playIconContainer.innerHTML = PLAY_SVG;
             renderSoundboard();
         });
 
