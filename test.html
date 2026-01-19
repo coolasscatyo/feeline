@@ -454,7 +454,25 @@
 </head>
 
 <body class="p-4">
-
+<!-- PASSWORD OVERLAY -->
+<div id="password-overlay" class="fixed inset-0 z-[9999] flex items-center justify-center backdrop-blur-xl bg-black/40">
+  <div class="bg-white dark:bg-gray-800 border-4 border-black dark:border-cyan-100 rounded-xl p-6 w-80 text-center">
+    <h2 class="text-2xl font-bold mb-4 text-black dark:text-cyan-100">Enter Password</h2>
+    <input
+      type="password"
+      id="password-input"
+      placeholder="Password"
+      class="w-full p-2 mb-3 rounded border-2 border-black text-black"
+    >
+    <button
+      id="password-submit"
+      class="w-full py-2 bg-black text-white rounded font-bold hover:bg-gray-800"
+    >
+      Unlock
+    </button>
+    <p id="password-error" class="text-red-500 mt-2 hidden">Wrong password</p>
+  </div>
+</div>
     <!-- Background Spawner Container -->
     <div id="full-screen-floating" class="fixed inset-0 w-full h-full z-0 overflow-hidden pointer-events-none"></div>
 
@@ -1724,6 +1742,27 @@
         });
         
     </script>
+    <script>
+  const overlay = document.getElementById("password-overlay");
+  const input = document.getElementById("password-input");
+  const button = document.getElementById("password-submit");
+  const error = document.getElementById("password-error");
+
+  const PASSWORD = "k00lc4cy"; // lowercase on purpose
+
+  function checkPassword() {
+    if (input.value.toLowerCase() === PASSWORD) {
+      overlay.style.display = "none";
+    } else {
+      error.classList.remove("hidden");
+    }
+  }
+
+  button.addEventListener("click", checkPassword);
+  input.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") checkPassword();
+  });
+</script>
 </body>
 </html>
 
