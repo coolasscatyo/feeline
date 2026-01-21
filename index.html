@@ -10,10 +10,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Kalam:wght400;700&display=swap" rel="stylesheet">
 
     <style>
-        /* Custom Styles for the Gamesite */
         body {
-            /* CHANGED to Comic Relief, followed by Kalam and Comic Sans */
-            font-family: 'Comic Relief', 'Kalam', 'Comic Sans MS', 'Comic Sans', cursive;
+           font-family: 'Comic Relief', 'Kalam', 'Comic Sans MS', 'Comic Sans', cursive;
             margin: 0;
             padding: 0;
             min-height: 100vh;
@@ -21,87 +19,67 @@
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            /* UPDATED COLOR: Very Pale Blue Background to show transparency better */
             background-color: #ECFEFF;
-            /* NEW COLOR: Dark Gray Text */
             color: #374151;
-            position: relative; /* Needed for z-index context */
-            transition: background-color 0.2s, color 0.2s; /* Added transition for theme change */
+            position: relative; 
+            transition: background-color 0.2s, color 0.2s;
         }
-        
-        /* NEW: Blur/Dimming effect for the body when a game is active */
-        /* UPDATED: Exclude the settings and music player from the blur */
         .game-active-bg > :not(#game-view):not(#settings-panel):not(#settings-button):not(.music-player) {
-            /* Target all direct children of body EXCEPT the game view, settings, and music player */
-            filter: blur(8px) brightness(0.8); /* Apply blur and slightly dim the background */
+            filter: blur(8px) brightness(0.8);
             transition: filter 0.4s ease-in-out;
-            pointer-events: none; /* Prevent interaction with background elements */
+            pointer-events: none; 
         }
 
 
-        /* Ensure the game view itself is transparent so the blurred background shows through */
         #game-view {
             background-color: transparent !important;
         }
 
-        /* Floating Background Styles - MOVED OUTSIDE #game-view */
-        /* It is now absolutely positioned inside the fixed #full-screen-floating element */
         .floating-image {
             position: absolute;
-            bottom: -150px; /* Start far below the screen */
+            bottom: -150px;
             object-fit: contain;
             
-            /* Add rotation to the image for better effect */
+        
             animation: rise 15s linear infinite;
         }
 
-        /* Keyframe to rise vertically up the container */
+        
         @keyframes rise {
             0% { transform: translateY(0) rotate(0deg); opacity: 1; }
             100% { transform: translateY(-120vh) rotate(720deg); opacity: 0; }
         }
 
-        /* The main menu card background/frame */
+       
         .game-card {
-            /* UPDATED: Clear background for a framed look */
             background-color: transparent;
-            /* NEW COLOR: Black Border */
             border: 6px solid #111827;
-            /* Adjusted shadow for clear card */
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-            /* CRUCIAL FOR ANIMATION: Add a global transition for all properties */
             transition: all 0.5s ease-in-out, transform 0.1s, border-color 0.2s, box-shadow 0.2s; 
-            z-index: 10; /* Ensure the game card is on top of the floating layer */
+            z-index: 10;
             position: relative;
-            /* Added a subtle blur effect to help readability over background images */
             backdrop-filter: blur(5px);
         }
 
-        /* NEW: Class for the animation target state (fixed position) */
         .game-card.transforming {
-            position: fixed !important; /* Take it out of flow for fixed positioning */
-            margin: 0 !important; /* Remove any margins */
-            z-index: 55; /* Above game view content (z-40) */
-            border-radius: 0.75rem; /* Match game-box rounded-xl */
+            position: fixed !important; 
+            margin: 0 !important;
+            z-index: 55;
+            border-radius: 0.75rem; 
             opacity: 1; 
         }
 
-        /* NEW: Hide the contents of the lobby card during transformation */
         .game-card.transforming > :not(.theme-toggle-button):not(.color-picker-panel) {
             opacity: 0;
-            transition: opacity 0.2s; /* Contents disappear quickly */
+            transition: opacity 0.2s; 
         }
         
-        /* NEW: Outline for the Game Box (The Iframe Monitor Frame) */
-        /* FIX: Made background transparent so floating images can be seen through it. */
         #game-box {
-            /* Use a thicker, distinct border for the monitor effect */
-            border: 12px solid #111827; /* Thick Black Border */
+            border: 12px solid #111827;
             background-color: transparent !important; 
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5); /* Strong shadow for depth */
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
             transition: border-color 0.2s, box-shadow 0.2s;
         }
-        /* Style for Fullscreen mode to remove the border and round corners */
         #game-box:fullscreen {
             border: none !important;
             border-radius: 0 !important;
@@ -109,15 +87,12 @@
         }
 
 
-        /* Custom styling for the game cards/buttons */
+       
         .game-link-card {
-            /* UPDATED: Clear background */
             background-color: transparent;
-            /* NEW COLOR: Light Gray Border */
-            border: 2px solid #D1D5DB;
+           border: 2px solid #D1D5DB;
             transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s; /* Added transitions */
             text-align: center;
-            /* Added a subtle blur effect to help readability over background images */
             backdrop-filter: blur(2px);
             position: relative; /* For absolute positioning of favorite star */
         }
